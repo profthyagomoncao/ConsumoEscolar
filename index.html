@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔍 Caça aos Equipamentos Elétricos</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ===== ESTILOS GERAIS ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f0f4f8;
+            color: #1e293b;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 40px 35px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 18px;
+            }
+        }
+
+        /* ===== CABEÇALHO ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+            border-bottom: 2px solid #e9edf2;
+            padding-bottom: 28px;
+        }
+
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 6px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0c5c64;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: #b4d534;
+            color: #0c5c64;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 100px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        /* ===== FORMULÁRIO ===== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+
+        .form-group .help-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            color: #1e293b;
+        }
+
+        .form-control:focus {
+            border-color: #0c5c64;
+            box-shadow: 0 0 0 4px rgba(12, 92, 100, 0.10);
+            background: #ffffff;
+        }
+
+        .form-control::placeholder {
+            color: #b0b8c4;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .form-row-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== RESULTADOS AUTOMÁTICOS ===== */
+        .result-box {
+            background: #f0f7f8;
+            border: 2px solid #b8d4d8;
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .result-box .result-item {
+            text-align: center;
+        }
+
+        .result-box .result-item .label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .result-box .result-item .value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0c5c64;
+            margin-top: 2px;
+        }
+
+        .result-box .result-item .value.positive {
+            color: #0c5c64;
+        }
+
+        @media (max-width: 450px) {
+            .result-box {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== SEÇÃO DE EQUIPAMENTO ===== */
+        .equipment-section {
+            background: #f8fafc;
+            border: 2px solid #e9edf2;
+            border-radius: 16px;
+            padding: 24px 24px 18px;
+            margin-top: 28px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .equipment-section:first-of-type {
+            margin-top: 18px;
+        }
+
+        .equipment-section .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #0c5c64;
+            margin-bottom: 18px;
+        }
+
+        .equipment-section .section-title .number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #0c5c64;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .equipment-section .remove-btn {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            background: #fee2e2;
+            border: none;
+            color: #dc2626;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .equipment-section .remove-btn:hover {
+            background: #fecaca;
+        }
+
+        .equipment-section .remove-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* ===== BOTÕES ===== */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 30px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 28px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #0c5c64;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0e6f79;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(12, 92, 100, 0.25);
+        }
+
+        .btn-success {
+            background: #b4d534;
+            color: #0c5c64;
+        }
+
+        .btn-success:hover {
+            background: #c3e343;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(180, 213, 52, 0.35);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #0c5c64;
+            border: 2px solid #0c5c64;
+        }
+
+        .btn-outline:hover {
+            background: #f0f7f8;
+        }
+
+        .btn-add {
+            background: #e9edf2;
+            color: #1e293b;
+        }
+
+        .btn-add:hover {
+            background: #dde3e9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-email {
+            background: #1e40af;
+            color: white;
+        }
+
+        .btn-email:hover {
+            background: #1e3a8a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.25);
+        }
+
+        @media (max-width: 600px) {
+            .btn-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn {
+                justify-content: center;
+            }
+        }
+
+        /* ===== TABELA DE RESUMO ===== */
+        .summary-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #e9edf2;
+        }
+
+        .summary-section h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0c5c64;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 2px solid #e9edf2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 650px;
+        }
+
+        table thead {
+            background: #0c5c64;
+            color: white;
+        }
+
+        table th {
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #e9edf2;
+            color: #1e293b;
+        }
+
+        table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        table tfoot {
+            background: #f0f7f8;
+            font-weight: 700;
+        }
+
+        table tfoot td {
+            padding: 14px 14px;
+            border-top: 2px solid #0c5c64;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .total-label {
+            font-weight: 700;
+            color: #0c5c64;
+        }
+
+        /* ===== ALERTAS ===== */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 18px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            border: 2px solid #86efac;
+            color: #166534;
+            display: block;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 2px solid #fca5a5;
+            color: #991b1b;
+            display: block;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border: 2px solid #93c5fd;
+            color: #1e40af;
+            display: block;
+        }
+
+        /* ===== RODAPÉ ===== */
+        .footer {
+            margin-top: 32px;
+            padding-top: 18px;
+            border-top: 2px solid #e9edf2;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        /* ===== FOTO ===== */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper .file-label {
+            display: block;
+            padding: 12px 16px;
+            background: #fafbfc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper .file-label:hover {
+            border-color: #0c5c64;
+            background: #f0f7f8;
+        }
+
+        .file-input-wrapper .file-label .file-name {
+            color: #0c5c64;
+            font-weight: 600;
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            .equipment-section {
+                padding: 18px 16px 14px;
+            }
+            .result-box .result-item .value {
+                font-size: 17px;
+            }
+        }
+
+        /* ===== PRINT ===== */
+        @media print {
+            .btn-group,
+            .btn-add,
+            .remove-btn {
+                display: none !important;
+            }
+            .container {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .equipment-section {
+                break-inside: avoid;
+                border-color: #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+
+        <!-- ===== CABEÇALHO ===== -->
+        <div class="header">
+            <div class="header-icon">🔍</div>
+            <h1>Caça aos Equipamentos Elétricos</h1>
+            <p>Atividade de Física — Ensino Médio</p>
+            <span class="badge">📸 Tire fotos e colete os dados técnicos</span>
+        </div>
+
+        <!-- ===== FORMULÁRIO ===== -->
+        <form id="activityForm" novalidate>
+
+            <!-- ===== IDENTIFICAÇÃO DO ALUNO ===== -->
+            <div style="background: #f8fafc; padding: 20px 22px; border-radius: 16px; margin-bottom: 10px;">
+                <h3 style="font-size: 16px; color: #0c5c64; margin-bottom: 16px;">📝 Identificação do Aluno</h3>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="studentName">Nome completo <span class="required">*</span></label>
+                        <input type="text" id="studentName" class="form-control" placeholder="Digite seu nome completo" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="studentClass">Turma <span class="required">*</span></label>
+                        <input type="text" id="studentClass" class="form-control" placeholder="Ex: 3º Ano A" required />
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="collectionDate">Data da coleta <span class="required">*</span></label>
+                        <input type="date" id="collectionDate" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="collectionLocation">Local da coleta</label>
+                        <input type="text" id="collectionLocation" class="form-control" placeholder="Ex: Minha casa, Oficina, Escola..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TARIFA ===== -->
+            <div style="background: #f8fafc; padding: 18px 22px; border-radius: 16px; margin-top: 16px;">
+                <h3 style="font-size: 16px; color: #0c5c64; margin-bottom: 14px;">⚡ Categoria de Tarifa</h3>
+                <div class="form-group">
+                    <label for="tariffType">Selecione a categoria <span class="required">*</span></label>
+                    <select id="tariffType" class="form-control" required>
+                        <option value="0.92">🏠 Residencial — R$ 0,92 / kWh</option>
+                        <option value="0.78">🌾 Rural — R$ 0,78 / kWh</option>
+                        <option value="0.85">🏢 Comercial / Industrial — R$ 0,85 / kWh</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ===== EQUIPAMENTOS ===== -->
+            <div id="equipmentContainer">
+                <!-- Inserido via JavaScript -->
+            </div>
+
+            <!-- ===== BOTÃO ADICIONAR ===== -->
+            <div style="margin-top: 18px; text-align: center;">
+                <button type="button" class="btn btn-add" id="addEquipmentBtn" style="width: 100%; justify-content: center;">
+                    ➕ Adicionar outro equipamento
+                </button>
+            </div>
+
+            <!-- ===== RESUMO ===== -->
+            <div class="summary-section" id="summarySection">
+                <h3>📊 Resumo dos Equipamentos Cadastrados</h3>
+                <div class="table-responsive">
+                    <table id="summaryTable">
+                        <thead>
+                            <tr>
+                                <th>Aparelho</th>
+                                <th class="text-right">Potência (W)</th>
+                                <th class="text-center">Quant.</th>
+                                <th class="text-right">Tempo (h/dia)</th>
+                                <th class="text-right">Consumo (kWh)</th>
+                                <th class="text-right">Custo (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryBody">
+                            <!-- Inserido via JavaScript -->
+                        </tbody>
+                        <tfoot id="summaryFooter">
+                            <!-- Inserido via JavaScript -->
+                        </tfoot>
+                    </table>
+                </div>
+                <div style="margin-top: 12px; font-size: 13px; color: #64748b; text-align: right;">
+                    * Tarifa aplicada: <span id="displayTariff">R$ 0,92 / kWh</span>
+                </div>
+            </div>
+
+            <!-- ===== BOTÕES ===== -->
+            <div class="btn-group">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-outline" id="resetFormBtn">
+                        🗑️ Limpar tudo
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-email" id="sendEmailBtn">
+                        📧 Enviar por E-mail
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submitBtn">
+                        📤 Atualizar Resumo
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== MENSAGEM ===== -->
+            <div id="messageBox" class="alert"></div>
+
+        </form>
+
+        <!-- ===== RODAPÉ ===== -->
+        <div class="footer">
+            <p>🔋 Coleta de dados para estudo de consumo elétrico</p>
+            <p style="margin-top: 4px;">© 2026 — Atividade Escolar</p>
+        </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ===== JAVASCRIPT ===== -->
+    <!-- ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== REFERÊNCIAS DOM =====
+            const container = document.getElementById('equipmentContainer');
+            const addBtn = document.getElementById('addEquipmentBtn');
+            const resetBtn = document.getElementById('resetFormBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const sendEmailBtn = document.getElementById('sendEmailBtn');
+            const form = document.getElementById('activityForm');
+            const messageBox = document.getElementById('messageBox');
+            const summaryBody = document.getElementById('summaryBody');
+            const summaryFooter = document.getElementById('summaryFooter');
+            const displayTariff = document.getElementById('displayTariff');
+            const tariffSelect = document.getElementById('tariffType');
+
+            let equipmentCounter = 0;
+
+            // ===== FUNÇÃO: CRIAR SEÇÃO DE EQUIPAMENTO =====
+            function createEquipmentSection(index) {
+                const section = document.createElement('div');
+                section.className = 'equipment-section';
+                section.dataset.index = index;
+
+                // Título
+                const title = document.createElement('div');
+                title.className = 'section-title';
+                title.innerHTML = `
+                    <span class="number">${index}</span>
+                    Equipamento ${index}
+                `;
+
+                // Botão remover
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '✕';
+                removeBtn.title = 'Remover este equipamento';
+                removeBtn.disabled = true;
+
+                // Campos
+                const fields = document.createElement('div');
+
+                // Nome
+                fields.appendChild(createFieldGroup(
+                    `equip_name_${index}`,
+                    'Nome do aparelho *',
+                    'text',
+                    'Ex: Ar Condicionado, Chuveiro, Geladeira...',
+                    true
+                ));
+
+                // Marca
+                fields.appendChild(createFieldGroup(
+                    `equip_brand_${index}`,
+                    'Marca / Modelo',
+                    'text',
+                    'Ex: Springer Midea, Lorenzetti...',
+                    false
+                ));
+
+                // Potência
+                fields.appendChild(createFieldGroup(
+                    `equip_power_${index}`,
+                    'Potência (W) *',
+                    'number',
+                    'Ex: 1400, 5400, 200...',
+                    true
+                ));
+
+                // Quantidade
+                fields.appendChild(createFieldGroup(
+                    `equip_quantity_${index}`,
+                    'Quantidade *',
+                    'number',
+                    'Ex: 1, 2, 3...',
+                    true
+                ));
+
+                // Tempo
+                fields.appendChild(createFieldGroup(
+                    `equip_time_${index}`,
+                    'Tempo (horas/dia) *',
+                    'number',
+                    'Ex: 2.5, 8, 0.5...',
+                    true
+                ));
+
+                // Tipo
+                fields.appendChild(createSelectGroup(
+                    `equip_type_${index}`,
+                    'Tipo de equipamento *',
+                    [
+                        { value: '', label: 'Selecione...' },
+                        { value: 'eletrodomestico', label: 'Eletrodoméstico' },
+                        { value: 'informatica', label: 'Informática / TI' },
+                        { value: 'iluminacao', label: 'Iluminação' },
+                        { value: 'ferramenta', label: 'Ferramenta Elétrica' },
+                        { value: 'audio_video', label: 'Áudio / Vídeo' },
+                        { value: 'outro', label: 'Outro' }
+                    ],
+                    true
+                ));
+
+                // Foto
+                fields.appendChild(createFileGroup(
+                    `equip_photo_${index}`,
+                    'Foto do equipamento'
+                ));
+
+                // Observações
+                fields.appendChild(createFieldGroup(
+                    `equip_obs_${index}`,
+                    'Observações',
+                    'textarea',
+                    'Informações adicionais...',
+                    false
+                ));
+
+                // ===== RESULTADOS AUTOMÁTICOS =====
+                const resultBox = document.createElement('div');
+                resultBox.className = 'result-box';
+                resultBox.id = `result_${index}`;
+                resultBox.innerHTML = `
+                    <div class="result-item">
+                        <div class="label">⚡ Consumo (kWh/dia)</div>
+                        <div class="value positive" id="consumo_${index}">0,000</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">💰 Custo (R$)</div>
+                        <div class="value positive" id="custo_${index}">R$ 0,00</div>
+                    </div>
+                `;
+
+                // Monta a seção
+                section.appendChild(title);
+                section.appendChild(removeBtn);
+                section.appendChild(fields);
+                section.appendChild(resultBox);
+
+                // Evento remover
+                removeBtn.addEventListener('click', function() {
+                    if (document.querySelectorAll('.equipment-section').length <= 1) return;
+                    section.remove();
+                    updateIndexes();
+                    updateRemoveButtons();
+                    updateSummary();
+                });
+
+                // Eventos para cálculo automático
+                const powerInput = fields.querySelector(`#equip_power_${index}`);
+                const timeInput = fields.querySelector(`#equip_time_${index}`);
+                const qtyInput = fields.querySelector(`#equip_quantity_${index}`);
+
+                const calcFunction = () => calculateEquipment(index);
+                powerInput.addEventListener('input', calcFunction);
+                timeInput.addEventListener('input', calcFunction);
+                qtyInput.addEventListener('input', calcFunction);
+                tariffSelect.addEventListener('change', () => {
+                    calculateEquipment(index);
+                    updateSummary();
+                });
+
+                // Inicializa cálculo
+                setTimeout(() => calculateEquipment(index), 50);
+
+                return section;
+            }
+
+            // ===== FUNÇÃO: CRIAR CAMPO =====
+            function createFieldGroup(id, labelText, type, placeholder, required) {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.htmlFor = id;
+                label.innerHTML = labelText + (required ? ' <span class="required">*</span>' : '');
+
+                const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+                input.id = id;
+                input.className = 'form-control';
+                if (type !== 'textarea') {
+                    input.type = type;
+                    input.placeholder = placeholder || '';
+                } else {
+                    input.placeholder = placeholder || '';
+                }
+                if (required) input.required = true;
+                if (type === 'number') {
+                    input.step = 'any';
+                    input.min = '0';
+                }
+
+                group.appendChild(label);
+                group.appendChild(input);
+                return group;
+            }
+
+            // ===== FUNÇÃO: CRIAR SELECT =====
+            function createSelectGroup(id, labelText, options, required) {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.htmlFor = id;
+                label.innerHTML = labelText + (required ? ' <span class="required">*</span>' : '');
+
+                const select = document.createElement('select');
+                select.id = id;
+                select.className = 'form-control';
+                if (required) select.required = true;
+
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.label;
+                    select.appendChild(option);
+                });
+
+                group.appendChild(label);
+                group.appendChild(select);
+                return group;
+            }
+
+            // ===== FUNÇÃO: CRIAR CAMPO DE FOTO =====
+            function createFileGroup(id, labelText) {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.htmlFor = id;
+                label.textContent = labelText;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'file-input-wrapper';
+
+                const fileLabel = document.createElement('div');
+                fileLabel.className = 'file-label';
+                fileLabel.innerHTML = `📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>`;
+
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.id = id;
+                input.accept = 'image/*';
+                input.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'file-name';
+                        nameSpan.textContent = ` 📎 ${this.files[0].name}`;
+                        fileLabel.innerHTML = `📷 Foto selecionada: `;
+                        fileLabel.appendChild(nameSpan);
+                    }
+                });
+
+                wrapper.appendChild(input);
+                wrapper.appendChild(fileLabel);
+                group.appendChild(label);
+                group.appendChild(wrapper);
+                return group;
+            }
+
+            // ===== FUNÇÃO: CALCULAR EQUIPAMENTO =====
+            function calculateEquipment(index) {
+                const powerInput = document.getElementById(`equip_power_${index}`);
+                const timeInput = document.getElementById(`equip_time_${index}`);
+                const qtyInput = document.getElementById(`equip_quantity_${index}`);
+                const consumoEl = document.getElementById(`consumo_${index}`);
+                const custoEl = document.getElementById(`custo_${index}`);
+
+                if (!powerInput || !timeInput || !qtyInput || !consumoEl || !custoEl) return;
+
+                const power = parseFloat(powerInput.value) || 0;
+                const time = parseFloat(timeInput.value) || 0;
+                const qty = parseFloat(qtyInput.value) || 1;
+                const tariff = parseFloat(tariffSelect.value) || 0.92;
+
+                // CONSUMO = POTÊNCIA * TEMPO * QUANTIDADE / 1000 (kWh)
+                const consumo = (power * time * qty) / 1000;
+                const custo = consumo * tariff;
+
+                consumoEl.textContent = consumo.toFixed(3);
+                custoEl.textContent = `R$ ${custo.toFixed(2)}`;
+
+                // Atualiza resumo
+                updateSummary();
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR RESUMO =====
+            function updateSummary() {
+                const sections = document.querySelectorAll('.equipment-section');
+                const tariff = parseFloat(tariffSelect.value) || 0.92;
+                displayTariff.textContent = `R$ ${tariff.toFixed(2)} / kWh`;
+
+                let totalConsumo = 0;
+                let totalCusto = 0;
+                let rows = '';
+
+                sections.forEach((section, idx) => {
+                    const num = idx + 1;
+                    const nameEl = document.getElementById(`equip_name_${num}`);
+                    const powerEl = document.getElementById(`equip_power_${num}`);
+                    const qtyEl = document.getElementById(`equip_quantity_${num}`);
+                    const timeEl = document.getElementById(`equip_time_${num}`);
+
+                    const name = nameEl ? nameEl.value.trim() : '---';
+                    const power = parseFloat(powerEl?.value) || 0;
+                    const qty = parseFloat(qtyEl?.value) || 1;
+                    const time = parseFloat(timeEl?.value) || 0;
+                    const consumo = (power * time * qty) / 1000;
+                    const custo = consumo * tariff;
+
+                    totalConsumo += consumo;
+                    totalCusto += custo;
+
+                    if (name && power > 0) {
+                        rows += `
+                            <tr>
+                                <td><strong>${name}</strong></td>
+                                <td class="text-right">${power}</td>
+                                <td class="text-center">${qty}</td>
+                                <td class="text-right">${time.toFixed(1)}</td>
+                                <td class="text-right">${consumo.toFixed(3)}</td>
+                                <td class="text-right">R$ ${custo.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                summaryBody.innerHTML = rows || `
+                    <tr>
+                        <td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">
+                            Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.
+                        </td>
+                    </tr>
+                `;
+
+                summaryFooter.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="total-label">TOTAL GERAL</td>
+                        <td class="text-right"></td>
+                        <td class="text-right" style="font-size:16px;">${totalConsumo.toFixed(3)} kWh</td>
+                        <td class="text-right" style="font-size:16px; color:#0c5c64;">R$ ${totalCusto.toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR ÍNDICES =====
+            function updateIndexes() {
+                const sections = document.querySelectorAll('.equipment-section');
+                sections.forEach((section, idx) => {
+                    const num = idx + 1;
+                    section.dataset.index = num;
+                    const numberSpan = section.querySelector('.section-title .number');
+                    if (numberSpan) numberSpan.textContent = num;
+                    const titleText = section.querySelector('.section-title');
+                    if (titleText) {
+                        const textNode = titleText.childNodes[2];
+                        if (textNode) textNode.textContent = ` Equipamento ${num}`;
+                    }
+                    // Atualiza IDs
+                    const inputs = section.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        const oldId = input.id;
+                        if (oldId) {
+                            const parts = oldId.split('_');
+                            if (parts.length >= 3) {
+                                const newId = parts[0] + '_' + parts[1] + '_' + num;
+                                input.id = newId;
+                                const label = section.querySelector(`label[for="${oldId}"]`);
+                                if (label) label.htmlFor = newId;
+                            }
+                        }
+                    });
+                    // Atualiza IDs dos resultados
+                    const consumoEl = document.getElementById(`consumo_${idx + 1}`);
+                    const custoEl = document.getElementById(`custo_${idx + 1}`);
+                    if (consumoEl) consumoEl.id = `consumo_${num}`;
+                    if (custoEl) custoEl.id = `custo_${num}`;
+                    const resultBox = section.querySelector('.result-box');
+                    if (resultBox) resultBox.id = `result_${num}`;
+                });
+                updateSummary();
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR BOTÕES REMOVER =====
+            function updateRemoveButtons() {
+                const sections = document.querySelectorAll('.equipment-section');
+                document.querySelectorAll('.remove-btn').forEach((btn, idx) => {
+                    btn.disabled = sections.length <= 1;
+                });
+            }
+
+            // ===== FUNÇÃO: ADICIONAR EQUIPAMENTO =====
+            function addEquipment() {
+                const sections = document.querySelectorAll('.equipment-section');
+                const newIndex = sections.length + 1;
+                const newSection = createEquipmentSection(newIndex);
+                container.appendChild(newSection);
+                updateRemoveButtons();
+                updateSummary();
+                setTimeout(() => {
+                    newSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+
+            // ===== FUNÇÃO: RESETAR =====
+            function resetForm() {
+                if (!confirm('Tem certeza que deseja limpar todos os dados?')) return;
+
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentClass').value = '';
+                document.getElementById('collectionDate').value = '';
+                document.getElementById('collectionLocation').value = '';
+                tariffSelect.selectedIndex = 0;
+
+                const sections = document.querySelectorAll('.equipment-section');
+                sections.forEach((section, idx) => {
+                    if (idx > 0) {
+                        section.remove();
+                    } else {
+                        const inputs = section.querySelectorAll('input, select, textarea');
+                        inputs.forEach(input => {
+                            if (input.type === 'file') {
+                                input.value = '';
+                                const label = input.closest('.file-input-wrapper').querySelector('.file-label');
+                                if (label) label.innerHTML = '📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>';
+                            } else if (input.tagName === 'SELECT') {
+                                input.selectedIndex = 0;
+                            } else {
+                                input.value = '';
+                            }
+                        });
+                    }
+                });
+
+                updateIndexes();
+                updateRemoveButtons();
+                updateSummary();
+                messageBox.className = 'alert';
+                messageBox.style.display = 'none';
+                messageBox.textContent = '';
+            }
+
+            // ===== FUNÇÃO: ENVIAR POR E-MAIL =====
+            function sendEmail() {
+                // Coleta dados do aluno
+                const studentName = document.getElementById('studentName').value.trim();
+                const studentClass = document.getElementById('studentClass').value.trim();
+                const collectionDate = document.getElementById('collectionDate').value;
+                const collectionLocation = document.getElementById('collectionLocation').value.trim();
+                const tariff = parseFloat(tariffSelect.value) || 0.92;
+                const tariffLabel = tariffSelect.options[tariffSelect.selectedIndex]?.text || 'Residencial';
+
+                if (!studentName || !studentClass || !collectionDate) {
+                    showMessage('⚠️ Preencha Nome, Turma e Data antes de enviar.', 'error');
+                    return;
+                }
+
+                // Coleta equipamentos
+                const sections = document.querySelectorAll('.equipment-section');
+                const equipamentos = [];
+                let hasError = false;
+
+                sections.forEach((section, idx) => {
+                    const num = idx + 1;
+                    const name = document.getElementById(`equip_name_${num}`);
+                    const power = document.getElementById(`equip_power_${num}`);
+                    const qty = document.getElementById(`equip_quantity_${num}`);
+                    const time = document.getElementById(`equip_time_${num}`);
+                    const type = document.getElementById(`equip_type_${num}`);
+                    const brand = document.getElementById(`equip_brand_${num}`);
+                    const obs = document.getElementById(`equip_obs_${num}`);
+
+                    const nameVal = name ? name.value.trim() : '';
+                    const powerVal = parseFloat(power?.value) || 0;
+                    const qtyVal = parseFloat(qty?.value) || 1;
+                    const timeVal = parseFloat(time?.value) || 0;
+                    const typeVal = type ? type.value : '';
+
+                    if (!nameVal) {
+                        showMessage(`⚠️ Equipamento ${num}: preencha o Nome.`, 'error');
+                        hasError = true;
+                        return;
+                    }
+                    if (powerVal <= 0) {
+                        showMessage(`⚠️ Equipamento ${num}: Potência deve ser maior que zero.`, 'error');
+                        hasError = true;
+                        return;
+                    }
+                    if (timeVal < 0) {
+                        showMessage(`⚠️ Equipamento ${num}: Tempo não pode ser negativo.`, 'error');
+                        hasError = true;
+                        return;
+                    }
+                    if (!typeVal) {
+                        showMessage(`⚠️ Equipamento ${num}: selecione o Tipo.`, 'error');
+                        hasError = true;
+                        return;
+                    }
+
+                    const consumo = (powerVal * timeVal * qtyVal) / 1000;
+                    const custo = consumo * tariff;
+
+                    equipamentos.push({
+                        nome: nameVal,
+                        marca: brand ? brand.value.trim() : '',
+                        potencia: powerVal,
+                        quantidade: qtyVal,
+                        tempo: timeVal,
+                        tipo: typeVal,
+                        consumo: consumo,
+                        custo: custo,
+                        observacoes: obs ? obs.value.trim() : ''
+                    });
+                });
+
+                if (hasError) return;
+                if (equipamentos.length === 0) {
+                    showMessage('⚠️ Adicione pelo menos um equipamento.', 'error');
+                    return;
+                }
+
+                // ===== CONSTRÓI O CORPO DO E-MAIL =====
+                let totalConsumo = 0;
+                let totalCusto = 0;
+                let tableRows = '';
+
+                equipamentos.forEach((eq, i) => {
+                    totalConsumo += eq.consumo;
+                    totalCusto += eq.custo;
+                    tableRows += `
+                        ${i+1}. ${eq.nome} | ${eq.potencia}W | ${eq.quantidade}x | ${eq.tempo}h/dia | ${eq.consumo.toFixed(3)} kWh | R$ ${eq.custo.toFixed(2)}
+                    `;
+                });
+
+                const subject = encodeURIComponent(`🔍 Caça aos Equipamentos - ${studentName} (${studentClass})`);
+                const body = encodeURIComponent(`
+        ===================================================
+        🔍 RELATÓRIO - CAÇA AOS EQUIPAMENTOS ELÉTRICOS
+        ===================================================
+
+        📝 DADOS DO ALUNO
+        ─────────────────────────────────────────────
+        Nome: ${studentName}
+        Turma: ${studentClass}
+        Data da coleta: ${collectionDate}
+        Local: ${collectionLocation || 'Não informado'}
+        Tarifa aplicada: ${tariffLabel} — R$ ${tariff.toFixed(2)} / kWh
+
+        📋 EQUIPAMENTOS CADASTRADOS (${equipamentos.length})
+        ─────────────────────────────────────────────
+        # | Aparelho | Pot(W) | Qtd | Tempo(h/dia) | Consumo(kWh) | Custo(R$)
+        ─────────────────────────────────────────────
+        ${tableRows}
+        ─────────────────────────────────────────────
+        TOTAL GERAL: ${totalConsumo.toFixed(3)} kWh | R$ ${totalCusto.toFixed(2)}
+        ===================================================
+
+        📌 Observações: Os dados foram coletados durante a atividade prática.
+
+        🔗 Enviado pelo sistema da Escola.
+        `);
+
+                window.location.href = `mailto:thyago.moncao@educacao.mg.gov.br?subject=${subject}&body=${body}`;
+
+                showMessage(`✅ E-mail aberto com ${equipamentos.length} equipamentos! Basta clicar em "Enviar".`, 'success');
+            }
+
+            // ===== FUNÇÃO: VALIDAR E ATUALIZAR =====
+            function submitForm(event) {
+                event.preventDefault();
+                updateSummary();
+                showMessage('✅ Resumo atualizado com sucesso! Verifique a tabela abaixo.', 'success');
+            }
+
+            // ===== FUNÇÃO: EXIBIR MENSAGEM =====
+            function showMessage(text, type) {
+                messageBox.className = 'alert';
+                messageBox.innerHTML = text;
+                messageBox.style.display = 'block';
+                if (type === 'success') messageBox.className = 'alert alert-success';
+                else if (type === 'error') messageBox.className = 'alert alert-error';
+                else messageBox.className = 'alert alert-info';
+                messageBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // ===== INICIALIZAÇÃO =====
+            function init() {
+                const dateInput = document.getElementById('collectionDate');
+                if (dateInput) {
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                }
+
+                const firstSection = createEquipmentSection(1);
+                container.appendChild(firstSection);
+                updateRemoveButtons();
+                updateSummary();
+
+                addBtn.addEventListener('click', addEquipment);
+                resetBtn.addEventListener('click', resetForm);
+                submitBtn.addEventListener('click', submitForm);
+                sendEmailBtn.addEventListener('click', sendEmail);
+                tariffSelect.addEventListener('change', updateSummary);
+
+                console.log('🔍 Caça aos Equipamentos — Site carregado!');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
