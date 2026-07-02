@@ -1321,7 +1321,12 @@
                 // Título
                 var title = document.createElement('div');
                 title.className = 'section-title';
-                title.innerHTML = '<span class="number">' + index + '</span> Equipamento ' + index;
+                var numberSpan = document.createElement('span');
+                numberSpan.className = 'number';
+                numberSpan.textContent = index;
+                var titleTextNode = document.createTextNode(' Equipamento ' + index);
+                title.appendChild(numberSpan);
+                title.appendChild(titleTextNode);
 
                 // Botão remover
                 var removeBtn = document.createElement('button');
@@ -1365,14 +1370,20 @@
                 ));
 
                 // Quantidade
-                fields.appendChild(createFieldGroup(
+                var qtyGroup = createFieldGroup(
                     'equip_quantity_' + index,
                     'Quantidade *',
                     'number',
                     'Ex: 1, 2, 3...',
                     true,
                     savedData?.quantidade || '1'
-                ));
+                );
+                var qtyInputEl = qtyGroup.querySelector('input');
+                if (qtyInputEl) {
+                    qtyInputEl.step = '1';
+                    qtyInputEl.min = '1';
+                }
+                fields.appendChild(qtyGroup);
 
                 // Tempo
                 fields.appendChild(createFieldGroup(
@@ -1436,8 +1447,9 @@
                 // Evento remover
                 removeBtn.addEventListener('click', function() {
                     if (document.querySelectorAll('.equipment-section').length <= 1) return;
+                    var currentIndex = section.dataset.index;
                     section.remove();
-                    delete imageDataUrls['equip_photo_' + index];
+                    delete imageDataUrls['equip_photo_' + currentIndex];
                     updateIndexes();
                     updateRemoveButtons();
                     updateSummary();
@@ -1445,19 +1457,19 @@
                 });
 
                 // Eventos para cálculo automático
+                // Usamos section.dataset.index (lido em tempo de execução) em vez de
+                // fechar sobre a variável "index" da closure, que fica desatualizada
+                // depois que updateIndexes() renomeia os campos.
                 var powerInput = fields.querySelector('#equip_power_' + index);
                 var timeInput = fields.querySelector('#equip_time_' + index);
                 var qtyInput = fields.querySelector('#equip_quantity_' + index);
 
-                var calcFunction = function() { calculateEquipment(index); };
+                var calcFunction = function() {
+                    calculateEquipment(section.dataset.index);
+                };
                 powerInput.addEventListener('input', calcFunction);
                 timeInput.addEventListener('input', calcFunction);
                 qtyInput.addEventListener('input', calcFunction);
-                tariffSelect.addEventListener('change', function() {
-                    calculateEquipment(index);
-                    updateSummary();
-                    updateChart();
-                });
 
                 // Restaurar preview da imagem se houver
                 if (savedData?.foto) {
@@ -1520,15 +1532,33 @@
             // ===== FUNÇÃO: ATUALIZAR ÍNDICES =====
             function updateIndexes() {
                 var sections = document.querySelectorAll('.equipment-section');
+
+                // Primeiro, capturamos o mapeamento de fotos "índice antigo -> imagem"
+                // usando o índice ATUAL de cada seção (antes de renomear nada),
+                // para não perder/misturar fotos ao reindexar.
+                var oldPhotoMap = {};
+                sections.forEach(function(section) {
+                    var oldIdx = section.dataset.index;
+                    var key = 'equip_photo_' + oldIdx;
+                    if (imageDataUrls[key]) {
+                        oldPhotoMap[oldIdx] = imageDataUrls[key];
+                    }
+                });
+
+                var newImageDataUrls = {};
+
                 sections.forEach(function(section, idx) {
+                    var oldIdx = section.dataset.index;
                     var num = idx + 1;
                     section.dataset.index = num;
+
                     var numberSpan = section.querySelector('.section-title .number');
                     if (numberSpan) numberSpan.textContent = num;
-                    var titleText = section.querySelector('.section-title');
-                    if (titleText) {
-                        var textNode = titleText.childNodes[2];
-                        if (textNode) textNode.textContent = ' Equipamento ' + num;
+
+                    // O segundo nó filho do título é o texto " Equipamento N"
+                    var titleEl = section.querySelector('.section-title');
+                    if (titleEl && titleEl.childNodes[1]) {
+                        titleEl.childNodes[1].textContent = ' Equipamento ' + num;
                     }
 
                     var inputs = section.querySelectorAll('input, select, textarea');
@@ -1545,8 +1575,8 @@
                         }
                     });
 
-                    var consumoEl = document.getElementById('consumo_' + (idx + 1));
-                    var custoEl = document.getElementById('custo_' + (idx + 1));
+                    var consumoEl = section.querySelector('[id^="consumo_"]');
+                    var custoEl = section.querySelector('[id^="custo_"]');
                     if (consumoEl) consumoEl.id = 'consumo_' + num;
                     if (custoEl) custoEl.id = 'custo_' + num;
                     var resultBox = section.querySelector('.result-box');
@@ -1554,20 +1584,17 @@
 
                     var previews = section.querySelectorAll('.image-preview-container');
                     previews.forEach(function(preview) {
-                        var oldId = preview.id;
-                        if (oldId) {
-                            var newId = 'preview_equip_photo_' + num;
-                            preview.id = newId;
-                        }
+                        preview.id = 'preview_equip_photo_' + num;
                     });
 
-                    var oldPhotoKey = 'equip_photo_' + (idx + 1);
-                    var newPhotoKey = 'equip_photo_' + num;
-                    if (imageDataUrls[oldPhotoKey]) {
-                        imageDataUrls[newPhotoKey] = imageDataUrls[oldPhotoKey];
-                        delete imageDataUrls[oldPhotoKey];
+                    // Migra a foto usando o mapeamento antigo capturado no início
+                    if (oldPhotoMap[oldIdx] !== undefined) {
+                        newImageDataUrls['equip_photo_' + num] = oldPhotoMap[oldIdx];
                     }
                 });
+
+                imageDataUrls = newImageDataUrls;
+
                 updateSummary();
                 updateChart();
             }
@@ -1584,6 +1611,14 @@
             function updateChart() {
                 var ctx = document.getElementById('consumoChart');
                 if (!ctx) return;
+
+                if (typeof Chart === 'undefined') {
+                    // Biblioteca de gráficos não carregou (ex: sem internet)
+                    var parentNoLib = ctx.parentElement;
+                    parentNoLib.innerHTML =
+                        '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;text-align:center;padding:20px;">⚠️ Não foi possível carregar a biblioteca de gráficos (verifique sua conexão)</div>';
+                    return;
+                }
 
                 var sections = document.querySelectorAll('.equipment-section');
                 var labels = [];
@@ -1619,51 +1654,55 @@
                     return;
                 }
 
-                chartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Consumo (kWh/dia)',
-                            data: data,
-                            backgroundColor: data.map(function(_, i) { return colors[i % colors
-                                .length]; }),
-                            borderColor: '#1e293b',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.parsed.y.toFixed(3) + ' kWh/dia';
-                                    }
-                                }
-                            }
+                try {
+                    chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Consumo (kWh/dia)',
+                                data: data,
+                                backgroundColor: data.map(function(_, i) { return colors[i % colors
+                                    .length]; }),
+                                borderColor: '#1e293b',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }]
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: '#e9edf2' },
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toFixed(1) + ' kWh';
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.parsed.y.toFixed(3) + ' kWh/dia';
+                                        }
                                     }
                                 }
                             },
-                            x: { grid: { display: false } }
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#e9edf2' },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toFixed(1) + ' kWh';
+                                        }
+                                    }
+                                },
+                                x: { grid: { display: false } }
+                            }
                         }
-                    }
-                });
+                    });
 
-                if (document.body.classList.contains('dark-mode')) {
-                    chartInstance.options.scales.y.grid.color = '#2a3a5e';
-                    chartInstance.update();
+                    if (document.body.classList.contains('dark-mode')) {
+                        chartInstance.options.scales.y.grid.color = '#2a3a5e';
+                        chartInstance.update();
+                    }
+                } catch (err) {
+                    console.error('Erro ao renderizar o gráfico:', err);
                 }
             }
 
@@ -1675,7 +1714,9 @@
 
                 var totalConsumo = 0;
                 var totalCusto = 0;
-                var rows = '';
+
+                summaryBody.innerHTML = '';
+                var hasRows = false;
 
                 sections.forEach(function(section, idx) {
                     var num = idx + 1;
@@ -1695,15 +1736,48 @@
                     totalCusto += custo;
 
                     if (name && name !== '---' && power > 0) {
-                        rows += '<tr><td><strong>' + name + '</strong></td><td class="text-right">' + power +
-                            '</td><td class="text-center">' + qty + '</td><td class="text-right">' + time
-                            .toFixed(1) + '</td><td class="text-right">' + consumo.toFixed(3) +
-                            '</td><td class="text-right">R$ ' + custo.toFixed(2) + '</td></tr>';
+                        hasRows = true;
+                        var tr = document.createElement('tr');
+
+                        var tdName = document.createElement('td');
+                        var strong = document.createElement('strong');
+                        strong.textContent = name; // textContent evita XSS
+                        tdName.appendChild(strong);
+
+                        var tdPower = document.createElement('td');
+                        tdPower.className = 'text-right';
+                        tdPower.textContent = power;
+
+                        var tdQty = document.createElement('td');
+                        tdQty.className = 'text-center';
+                        tdQty.textContent = qty;
+
+                        var tdTime = document.createElement('td');
+                        tdTime.className = 'text-right';
+                        tdTime.textContent = time.toFixed(1);
+
+                        var tdConsumo = document.createElement('td');
+                        tdConsumo.className = 'text-right';
+                        tdConsumo.textContent = consumo.toFixed(3);
+
+                        var tdCusto = document.createElement('td');
+                        tdCusto.className = 'text-right';
+                        tdCusto.textContent = 'R$ ' + custo.toFixed(2);
+
+                        tr.appendChild(tdName);
+                        tr.appendChild(tdPower);
+                        tr.appendChild(tdQty);
+                        tr.appendChild(tdTime);
+                        tr.appendChild(tdConsumo);
+                        tr.appendChild(tdCusto);
+                        summaryBody.appendChild(tr);
                     }
                 });
 
-                summaryBody.innerHTML = rows ||
-                    '<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.</td></tr>';
+                if (!hasRows) {
+                    summaryBody.innerHTML =
+                        '<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.</td></tr>';
+                }
 
                 summaryFooter.innerHTML = '<tr><td colspan="3" class="total-label">TOTAL GERAL</td><td class="text-right"></td><td class="text-right" style="font-size:16px;">' +
                     totalConsumo.toFixed(3) +
@@ -1775,6 +1849,29 @@
                 };
             }
 
+            // ===== FUNÇÃO: ESCAPAR CAMPO CSV =====
+            function escaparCampoCSV(valor) {
+                var texto = (valor === null || valor === undefined) ? '' : String(valor);
+                // Se contiver ponto-e-vírgula, aspas ou quebra de linha, envolve em aspas
+                // e duplica aspas internas, seguindo a convenção padrão de CSV.
+                if (/[;"\n\r]/.test(texto)) {
+                    texto = '"' + texto.replace(/"/g, '""') + '"';
+                }
+                return texto;
+            }
+
+            // ===== FUNÇÃO: VALIDAR IDENTIFICAÇÃO ANTES DE EXPORTAR =====
+            function validarIdentificacao() {
+                var studentName = document.getElementById('studentName').value.trim();
+                var studentClass = document.getElementById('studentClass').value.trim();
+                var collectionDate = document.getElementById('collectionDate').value;
+                if (!studentName || !studentClass || !collectionDate) {
+                    showMessage('⚠️ Preencha Nome, Turma e Data antes de exportar/gerar o arquivo.', 'error');
+                    return false;
+                }
+                return true;
+            }
+
             // ===== FUNÇÃO: SALVAR LOCAL =====
             function salvarLocal() {
                 var dados = coletarDados();
@@ -1782,8 +1879,16 @@
                     showMessage('⚠️ Adicione pelo menos um equipamento para salvar.', 'error');
                     return;
                 }
-                localStorage.setItem('caça_equipamentos', JSON.stringify(dados));
-                showMessage('✅ Dados salvos com sucesso! Use "Carregar salvos" para recuperar.', 'success');
+                try {
+                    localStorage.setItem('caça_equipamentos', JSON.stringify(dados));
+                    showMessage('✅ Dados salvos com sucesso! Use "Carregar salvos" para recuperar.', 'success');
+                } catch (err) {
+                    console.error('Erro ao salvar no localStorage:', err);
+                    showMessage(
+                        '⚠️ Não foi possível salvar automaticamente (armazenamento local cheio, provavelmente por causa das fotos). Seus dados continuam preenchidos no formulário — exporte em CSV/PDF para não perdê-los.',
+                        'error'
+                    );
+                }
             }
 
             // ===== FUNÇÃO: CARREGAR LOCAL =====
@@ -1950,20 +2055,34 @@
                     showMessage('⚠️ Adicione pelo menos um equipamento para exportar.', 'error');
                     return;
                 }
+                if (!validarIdentificacao()) return;
 
                 var csv = '\uFEFF';
                 csv += 'Aparelho;Potência (W);Quantidade;Tempo (h/dia);Consumo (kWh);Custo (R$);Tipo;Marca;Observações\n';
 
                 dados.equipamentos.forEach(function(eq) {
-                    csv += eq.nome + ';' + eq.potencia + ';' + eq.quantidade + ';' + eq.tempo + ';' + eq.consumo
-                        .toFixed(3) + ';' + eq.custo.toFixed(2) + ';' + eq.tipo + ';' + eq.marca + ';' + eq
-                        .observacoes + '\n';
+                    csv += [
+                        escaparCampoCSV(eq.nome),
+                        escaparCampoCSV(eq.potencia),
+                        escaparCampoCSV(eq.quantidade),
+                        escaparCampoCSV(eq.tempo),
+                        escaparCampoCSV(eq.consumo.toFixed(3)),
+                        escaparCampoCSV(eq.custo.toFixed(2)),
+                        escaparCampoCSV(eq.tipo),
+                        escaparCampoCSV(eq.marca),
+                        escaparCampoCSV(eq.observacoes)
+                    ].join(';') + '\n';
                 });
 
                 csv += '\n';
                 csv += 'TOTAL; ; ; ;' + dados.totalConsumo.toFixed(3) + ';' + dados.totalCusto.toFixed(2) + '; ; ;\n';
-                csv += 'Aluno: ' + dados.aluno + ';Turma: ' + dados.turma + ';Data: ' + dados.data + ';Local: ' + dados
-                    .local + ';Tarifa: ' + dados.tarifaLabel + '\n';
+                csv += [
+                    'Aluno: ' + escaparCampoCSV(dados.aluno),
+                    'Turma: ' + escaparCampoCSV(dados.turma),
+                    'Data: ' + escaparCampoCSV(dados.data),
+                    'Local: ' + escaparCampoCSV(dados.local),
+                    'Tarifa: ' + escaparCampoCSV(dados.tarifaLabel)
+                ].join(';') + '\n';
 
                 var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 var link = document.createElement('a');
@@ -1974,11 +2093,24 @@
                 showMessage('✅ CSV exportado com ' + dados.equipamentos.length + ' equipamentos!', 'success');
             }
 
+            // ===== FUNÇÃO: ESCAPAR HTML (proteção contra XSS no PDF/resumo) =====
+            function escaparHTML(valor) {
+                var div = document.createElement('div');
+                div.textContent = (valor === null || valor === undefined) ? '' : String(valor);
+                return div.innerHTML;
+            }
+
             // ===== FUNÇÃO: GERAR PDF (CORRIGIDA) =====
             function gerarPDF() {
                 var dados = coletarDados();
                 if (dados.equipamentos.length === 0) {
                     showMessage('⚠️ Adicione pelo menos um equipamento para gerar o PDF.', 'error');
+                    return;
+                }
+                if (!validarIdentificacao()) return;
+
+                if (typeof html2pdf === 'undefined') {
+                    showMessage('⚠️ Biblioteca de PDF não carregou (verifique sua conexão com a internet).', 'error');
                     return;
                 }
 
@@ -1988,25 +2120,26 @@
                 // Criar o elemento PDF com estilo inline para garantir renderização
                 var pdfElement = document.createElement('div');
                 pdfElement.id = 'pdfSection';
+                // Posicionado fora da tela para não "piscar" na página durante a geração
                 pdfElement.style.cssText =
-                    'padding: 30px; background: white; border-radius: 16px; max-width: 800px; margin: 0 auto; font-family: Inter, sans-serif;';
+                    'position: fixed; left: -9999px; top: 0; padding: 30px; background: white; border-radius: 16px; max-width: 800px; margin: 0 auto; font-family: Inter, sans-serif;';
 
                 // Construir a tabela
                 var tableRows = '';
                 dados.equipamentos.forEach(function(eq) {
                     tableRows += '<tr>' +
-                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2;"><strong>' + eq.nome +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2;"><strong>' + escaparHTML(eq.nome) +
                         '</strong></td>' +
-                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + eq
-                        .potencia + '</td>' +
-                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:center;">' + eq
-                        .quantidade + '</td>' +
-                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + eq
-                        .tempo.toFixed(1) + '</td>' +
-                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + eq
-                        .consumo.toFixed(3) + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + escaparHTML(eq
+                        .potencia) + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:center;">' + escaparHTML(eq
+                        .quantidade) + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + escaparHTML(eq
+                        .tempo.toFixed(1)) + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + escaparHTML(eq
+                        .consumo.toFixed(3)) + '</td>' +
                         '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right; color:#0c5c64; font-weight:bold;">R$ ' +
-                        eq.custo.toFixed(2) + '</td>' +
+                        escaparHTML(eq.custo.toFixed(2)) + '</td>' +
                         '</tr>';
                 });
 
@@ -2018,11 +2151,11 @@
                     '</div>' +
 
                     '<div style="background:#f8fafc; padding:16px; border-radius:12px; margin-bottom:20px; font-size:13px; color:#475569;">' +
-                    '<p style="margin:4px 0;"><strong>Aluno:</strong> ' + dados.aluno + ' &nbsp;|&nbsp; <strong>Turma:</strong> ' +
-                    dados.turma + '</p>' +
-                    '<p style="margin:4px 0;"><strong>Data da coleta:</strong> ' + dados.data + ' &nbsp;|&nbsp; <strong>Local:</strong> ' +
-                    dados.local + '</p>' +
-                    '<p style="margin:4px 0;"><strong>Tarifa aplicada:</strong> ' + dados.tarifaLabel + ' — R$ ' + dados
+                    '<p style="margin:4px 0;"><strong>Aluno:</strong> ' + escaparHTML(dados.aluno) + ' &nbsp;|&nbsp; <strong>Turma:</strong> ' +
+                    escaparHTML(dados.turma) + '</p>' +
+                    '<p style="margin:4px 0;"><strong>Data da coleta:</strong> ' + escaparHTML(dados.data) + ' &nbsp;|&nbsp; <strong>Local:</strong> ' +
+                    escaparHTML(dados.local) + '</p>' +
+                    '<p style="margin:4px 0;"><strong>Tarifa aplicada:</strong> ' + escaparHTML(dados.tarifaLabel) + ' — R$ ' + dados
                     .tarifa.toFixed(2) + ' / kWh</p>' +
                     '</div>' +
 
@@ -2053,7 +2186,7 @@
                     '<div style="border-top:1px solid #e9edf2; padding-top:12px; margin-top:16px; font-size:11px; color:#94a3b8; text-align:center;">' +
                     '<p style="margin:4px 0;">📌 Os dados foram coletados durante a atividade prática.</p>' +
                     '<p style="margin:4px 0;">🔗 Relatório gerado automaticamente pelo sistema.</p>' +
-                    '<p style="margin:4px 0; font-size:10px;">Gerado em: ' + new Date().toLocaleString('pt-BR') +
+                    '<p style="margin:4px 0; font-size:10px;">Gerado em: ' + escaparHTML(new Date().toLocaleString('pt-BR')) +
                     '</p>' +
                     '</div>';
 
@@ -2093,7 +2226,9 @@
                             'success');
                     })
                     .catch(function(err) {
-                        document.body.removeChild(pdfElement);
+                        if (document.body.contains(pdfElement)) {
+                            document.body.removeChild(pdfElement);
+                        }
                         showMessage('⚠️ Erro ao gerar o PDF. Tente novamente.', 'error');
                         console.error('Erro ao gerar PDF:', err);
                     });
@@ -2120,29 +2255,54 @@
                 });
 
                 var subject = encodeURIComponent('🔍 Caça aos Equipamentos - ' + dados.aluno + ' (' + dados.turma + ')');
-                var body = encodeURIComponent(
-                    '\n        ===================================================\n        🔍 RELATÓRIO - CAÇA AOS EQUIPAMENTOS ELÉTRICOS\n        ===================================================\n\n        📝 DADOS DO ALUNO\n        ─────────────────────────────────────────────\n        Nome: ' +
-                    dados.aluno +
-                    '\n        Turma: ' + dados.turma +
-                    '\n        Data da coleta: ' + dados.data +
-                    '\n        Local: ' + dados.local +
-                    '\n        Tarifa aplicada: ' + dados.tarifaLabel + ' — R$ ' + dados.tarifa.toFixed(2) +
-                    ' / kWh\n\n        📋 EQUIPAMENTOS CADASTRADOS (' + dados.equipamentos.length +
-                    ')\n        ─────────────────────────────────────────────\n        # | Aparelho | Pot(W) | Qtd | Tempo(h/dia) | Consumo(kWh) | Custo(R$)\n        ─────────────────────────────────────────────\n        ' +
-                    tableRows +
-                    '        ─────────────────────────────────────────────\n        TOTAL GERAL: ' + dados.totalConsumo
-                    .toFixed(3) + ' kWh | R$ ' + dados.totalCusto.toFixed(2) +
-                    '\n        ===================================================\n\n        📌 Observações: Os dados foram coletados durante a atividade prática.\n\n        🔗 Enviado pelo sistema da Escola.\n        '
-                    );
+                // Corpo do e-mail sem indentação artificial (evita recuo estranho no cliente de e-mail)
+                var linhas = [
+                    '===================================================',
+                    '🔍 RELATÓRIO - CAÇA AOS EQUIPAMENTOS ELÉTRICOS',
+                    '===================================================',
+                    '',
+                    '📝 DADOS DO ALUNO',
+                    '─────────────────────────────────────────────',
+                    'Nome: ' + dados.aluno,
+                    'Turma: ' + dados.turma,
+                    'Data da coleta: ' + dados.data,
+                    'Local: ' + dados.local,
+                    'Tarifa aplicada: ' + dados.tarifaLabel + ' — R$ ' + dados.tarifa.toFixed(2) + ' / kWh',
+                    '',
+                    '📋 EQUIPAMENTOS CADASTRADOS (' + dados.equipamentos.length + ')',
+                    '─────────────────────────────────────────────',
+                    '# | Aparelho | Pot(W) | Qtd | Tempo(h/dia) | Consumo(kWh) | Custo(R$)',
+                    '─────────────────────────────────────────────',
+                    tableRows.trimEnd(),
+                    '─────────────────────────────────────────────',
+                    'TOTAL GERAL: ' + dados.totalConsumo.toFixed(3) + ' kWh | R$ ' + dados.totalCusto.toFixed(2),
+                    '===================================================',
+                    '',
+                    '📌 Observações: Os dados foram coletados durante a atividade prática.',
+                    '',
+                    '🔗 Enviado pelo sistema da Escola.'
+                ];
+                var body = encodeURIComponent(linhas.join('\n'));
 
-                window.location.href =
-                    'mailto:thyago.moncao@educacao.mg.gov.br?subject=' + subject + '&body=' + body;
+                var mailtoLink = 'mailto:thyago.moncao@educacao.mg.gov.br?subject=' + subject + '&body=' + body;
+
+                // mailto: tem limite prático de ~2000 caracteres em muitos clientes;
+                // avisamos o usuário em vez de deixar o link falhar silenciosamente.
+                if (mailtoLink.length > 1800) {
+                    showMessage(
+                        '⚠️ A lista de equipamentos é muito grande para enviar por e-mail (link mailto tem limite de tamanho). Use "Exportar CSV" ou "Gerar PDF" e anexe o arquivo manualmente.',
+                        'error'
+                    );
+                    return;
+                }
+
+                window.location.href = mailtoLink;
                 showMessage('✅ E-mail aberto com ' + dados.equipamentos.length + ' equipamentos!', 'success');
             }
 
             // ===== FUNÇÃO: VALIDAR E ATUALIZAR =====
             function submitForm(event) {
-                event.preventDefault();
+                if (event && event.preventDefault) event.preventDefault();
                 updateSummary();
                 updateChart();
                 salvarLocal();
@@ -2152,7 +2312,7 @@
             // ===== FUNÇÃO: EXIBIR MENSAGEM =====
             function showMessage(text, type) {
                 messageBox.className = 'alert';
-                messageBox.innerHTML = text;
+                messageBox.textContent = text; // textContent evita XSS
                 messageBox.style.display = 'block';
                 if (type === 'success') messageBox.className = 'alert alert-success';
                 else if (type === 'error') messageBox.className = 'alert alert-error';
@@ -2164,7 +2324,13 @@
             function init() {
                 var dateInput = document.getElementById('collectionDate');
                 if (dateInput) {
-                    dateInput.value = new Date().toISOString().split('T')[0];
+                    // Usa data/hora LOCAL (não UTC) para evitar que, perto da meia-noite,
+                    // a data pré-preenchida apareça como o dia seguinte.
+                    var hoje = new Date();
+                    var ano = hoje.getFullYear();
+                    var mes = String(hoje.getMonth() + 1).padStart(2, '0');
+                    var dia = String(hoje.getDate()).padStart(2, '0');
+                    dateInput.value = ano + '-' + mes + '-' + dia;
                 }
 
                 var firstSection = createEquipmentSection(1);
@@ -2191,11 +2357,21 @@
                 addBtn.addEventListener('click', addEquipment);
                 resetBtn.addEventListener('click', resetForm);
                 loadSavedBtn.addEventListener('click', carregarLocal);
-                submitBtn.addEventListener('click', submitForm);
                 sendEmailBtn.addEventListener('click', sendEmail);
                 exportCsvBtn.addEventListener('click', exportarCSV);
                 exportPdfBtn.addEventListener('click', gerarPDF);
+
+                // Único listener de submit do formulário: cobre tanto o clique no botão
+                // "Atualizar Resumo" quanto o Enter pressionado em qualquer campo de texto,
+                // que antes recarregava a página e apagava os dados do aluno.
+                form.addEventListener('submit', submitForm);
+
+                // Único listener de mudança de tarifa (evita duplicação a cada equipamento
+                // adicionado, que antes disparava updateSummary/updateChart múltiplas vezes).
                 tariffSelect.addEventListener('change', function() {
+                    document.querySelectorAll('.equipment-section').forEach(function(section) {
+                        calculateEquipment(section.dataset.index);
+                    });
                     updateSummary();
                     updateChart();
                 });
