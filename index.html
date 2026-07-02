@@ -2100,7 +2100,18 @@
                 return div.innerHTML;
             }
 
-            // ===== FUNÇÃO: GERAR PDF (CORRIGIDA) =====
+            // ===== FUNÇÃO: GERAR PDF (CORRIGIDA — inclui fotos e gráfico) =====
+            //
+            // BUG ANTERIOR: o elemento do relatório era posicionado com
+            // "position: fixed; left: -9999px" (fora da área visível da tela)
+            // antes de ser capturado pelo html2canvas. Em muitos navegadores/
+            // versões do html2canvas, elementos fora do viewport são
+            // capturados como uma área em branco, resultando em PDF vazio.
+            // CORREÇÃO: o relatório agora é renderizado DENTRO do viewport
+            // (como uma camada por cima da página, visível por um instante
+            // enquanto o PDF é gerado), o que garante que o html2canvas
+            // sempre capture o conteúdo real. Também passamos a incluir as
+            // fotos de cada equipamento e uma imagem do gráfico de consumo.
             function gerarPDF() {
                 var dados = coletarDados();
                 if (dados.equipamentos.length === 0) {
@@ -2117,14 +2128,21 @@
                 // Mostrar mensagem de carregamento
                 showMessage('⏳ Gerando PDF, aguarde...', 'info');
 
-                // Criar o elemento PDF com estilo inline para garantir renderização
+                // Overlay que cobre a tela inteira: mantém o relatório DENTRO
+                // do viewport (necessário para o html2canvas capturar corretamente),
+                // mas o exibe como uma camada por cima do app, com fundo branco.
+                var overlay = document.createElement('div');
+                overlay.id = 'pdfOverlay';
+                overlay.style.cssText =
+                    'position: fixed; inset: 0; z-index: 999999; background: #ffffff; ' +
+                    'overflow-y: auto; -webkit-overflow-scrolling: touch;';
+
                 var pdfElement = document.createElement('div');
                 pdfElement.id = 'pdfSection';
-                // Posicionado fora da tela para não "piscar" na página durante a geração
                 pdfElement.style.cssText =
-                    'position: fixed; left: -9999px; top: 0; padding: 30px; background: white; border-radius: 16px; max-width: 800px; margin: 0 auto; font-family: Inter, sans-serif;';
+                    'width: 780px; max-width: 100%; margin: 0 auto; padding: 30px; background: white; font-family: Inter, sans-serif;';
 
-                // Construir a tabela
+                // ===== Tabela de equipamentos =====
                 var tableRows = '';
                 dados.equipamentos.forEach(function(eq) {
                     tableRows += '<tr>' +
@@ -2142,6 +2160,40 @@
                         escaparHTML(eq.custo.toFixed(2)) + '</td>' +
                         '</tr>';
                 });
+
+                // ===== Gráfico de consumo (convertido de canvas para imagem) =====
+                var chartHTML = '';
+                if (chartInstance) {
+                    try {
+                        var chartImg = chartInstance.toBase64Image('image/png', 1);
+                        chartHTML =
+                            '<div style="margin: 24px 0;">' +
+                            '<h3 style="font-size:14px; font-weight:700; color:#0c5c64; margin-bottom:10px;">📊 Gráfico de Consumo por Equipamento</h3>' +
+                            '<img src="' + chartImg + '" style="width:100%; max-width:100%; border:1px solid #e9edf2; border-radius:8px;" />' +
+                            '</div>';
+                    } catch (err) {
+                        console.error('Erro ao converter gráfico para imagem:', err);
+                    }
+                }
+
+                // ===== Fotos dos equipamentos =====
+                var fotosHTML = '';
+                var comFoto = dados.equipamentos.filter(function(eq) { return !!eq.foto; });
+                if (comFoto.length > 0) {
+                    var fotosItens = '';
+                    comFoto.forEach(function(eq) {
+                        fotosItens +=
+                            '<div style="width:150px; text-align:center;">' +
+                            '<img src="' + eq.foto + '" style="width:150px; height:150px; object-fit:cover; border-radius:8px; border:2px solid #e2e8f0;" />' +
+                            '<div style="font-size:11px; color:#475569; margin-top:6px; font-weight:600;">' + escaparHTML(eq.nome) + '</div>' +
+                            '</div>';
+                    });
+                    fotosHTML =
+                        '<div style="margin: 24px 0;">' +
+                        '<h3 style="font-size:14px; font-weight:700; color:#0c5c64; margin-bottom:10px;">📸 Fotos dos Equipamentos</h3>' +
+                        '<div style="display:flex; flex-wrap:wrap; gap:14px;">' + fotosItens + '</div>' +
+                        '</div>';
+                }
 
                 // Montar o HTML completo do PDF
                 pdfElement.innerHTML =
@@ -2183,6 +2235,9 @@
                     '</tbody>' +
                     '</table>' +
 
+                    chartHTML +
+                    fotosHTML +
+
                     '<div style="border-top:1px solid #e9edf2; padding-top:12px; margin-top:16px; font-size:11px; color:#94a3b8; text-align:center;">' +
                     '<p style="margin:4px 0;">📌 Os dados foram coletados durante a atividade prática.</p>' +
                     '<p style="margin:4px 0;">🔗 Relatório gerado automaticamente pelo sistema.</p>' +
@@ -2190,48 +2245,58 @@
                     '</p>' +
                     '</div>';
 
-                // Adicionar ao body
-                document.body.appendChild(pdfElement);
+                overlay.appendChild(pdfElement);
+                document.body.appendChild(overlay);
 
-                // Forçar reflow para garantir renderização
-                pdfElement.offsetHeight;
+                // Forçar reflow e aguardar o próximo frame para garantir que
+                // todas as imagens (fotos em base64 e gráfico) já estejam
+                // pintadas antes de o html2canvas capturar o conteúdo.
+                overlay.offsetHeight;
 
-                // Configurações otimizadas do PDF
-                var opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: 'relatorio_' + dados.aluno.replace(/\s/g, '_') + '_' + dados.data + '.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        letterRendering: true,
-                        logging: false
-                    },
-                    jsPDF: {
-                        unit: 'in',
-                        format: 'a4',
-                        orientation: 'portrait'
-                    },
-                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                };
+                function iniciarCaptura() {
+                    var opt = {
+                        margin: [0.5, 0.5, 0.5, 0.5],
+                        filename: 'relatorio_' + dados.aluno.replace(/\s/g, '_') + '_' + dados.data + '.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            allowTaint: true,
+                            letterRendering: true,
+                            backgroundColor: '#ffffff',
+                            logging: false,
+                            windowWidth: pdfElement.scrollWidth,
+                            windowHeight: pdfElement.scrollHeight
+                        },
+                        jsPDF: {
+                            unit: 'in',
+                            format: 'a4',
+                            orientation: 'portrait'
+                        },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                    };
 
-                // Gerar PDF
-                html2pdf()
-                    .set(opt)
-                    .from(pdfElement)
-                    .save()
-                    .then(function() {
-                        document.body.removeChild(pdfElement);
-                        showMessage('✅ PDF gerado com sucesso! (' + dados.equipamentos.length + ' equipamentos)',
-                            'success');
-                    })
-                    .catch(function(err) {
-                        if (document.body.contains(pdfElement)) {
-                            document.body.removeChild(pdfElement);
-                        }
-                        showMessage('⚠️ Erro ao gerar o PDF. Tente novamente.', 'error');
-                        console.error('Erro ao gerar PDF:', err);
-                    });
+                    html2pdf()
+                        .set(opt)
+                        .from(pdfElement)
+                        .save()
+                        .then(function() {
+                            if (document.body.contains(overlay)) document.body.removeChild(overlay);
+                            showMessage('✅ PDF gerado com sucesso! (' + dados.equipamentos.length + ' equipamentos)',
+                                'success');
+                        })
+                        .catch(function(err) {
+                            if (document.body.contains(overlay)) document.body.removeChild(overlay);
+                            showMessage('⚠️ Erro ao gerar o PDF. Tente novamente.', 'error');
+                            console.error('Erro ao gerar PDF:', err);
+                        });
+                }
+
+                // Espera dois frames de renderização (garante que o layout e as
+                // imagens já foram pintados na tela) antes de iniciar a captura.
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(iniciarCaptura);
+                });
             }
 
             // ===== FUNÇÃO: ENVIAR POR E-MAIL =====
