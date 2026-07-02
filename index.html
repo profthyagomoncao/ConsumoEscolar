@@ -1083,7 +1083,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== JAVASCRIPT CORRIGIDO (FUNÇÃO ADD EQUIPAMENTO FIXA) ==== -->
+    <!-- ===== JAVASCRIPT COMPLETO E CORRIGIDO ===== -->
     <!-- ============================================================ -->
     <script>
         (function() {
@@ -1422,7 +1422,10 @@
                 var resultBox = document.createElement('div');
                 resultBox.className = 'result-box';
                 resultBox.id = 'result_' + index;
-                resultBox.innerHTML = '<div class="result-item"><div class="label">⚡ Consumo (kWh/dia)</div><div class="value positive" id="consumo_' + index + '">0,000</div></div><div class="result-item"><div class="label">💰 Custo (R$)</div><div class="value positive" id="custo_' + index + '">R$ 0,00</div></div>';
+                resultBox.innerHTML =
+                    '<div class="result-item"><div class="label">⚡ Consumo (kWh/dia)</div><div class="value positive" id="consumo_' +
+                    index + '">0,000</div></div><div class="result-item"><div class="label">💰 Custo (R$)</div><div class="value positive" id="custo_' +
+                    index + '">R$ 0,00</div></div>';
 
                 // Monta a seção
                 section.appendChild(title);
@@ -1699,11 +1702,13 @@
                     }
                 });
 
-                summaryBody.innerHTML = rows || '<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.</td></tr>';
+                summaryBody.innerHTML = rows ||
+                    '<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.</td></tr>';
 
                 summaryFooter.innerHTML = '<tr><td colspan="3" class="total-label">TOTAL GERAL</td><td class="text-right"></td><td class="text-right" style="font-size:16px;">' +
-                    totalConsumo.toFixed(3) + ' kWh</td><td class="text-right" style="font-size:16px; color:#0c5c64;">R$ ' +
-                    totalCusto.toFixed(2) + '</td></tr>';
+                    totalConsumo.toFixed(3) +
+                    ' kWh</td><td class="text-right" style="font-size:16px; color:#0c5c64;">R$ ' + totalCusto
+                    .toFixed(2) + '</td></tr>';
             }
 
             // ===== FUNÇÃO: COLETAR DADOS =====
@@ -1969,7 +1974,7 @@
                 showMessage('✅ CSV exportado com ' + dados.equipamentos.length + ' equipamentos!', 'success');
             }
 
-            // ===== FUNÇÃO: GERAR PDF =====
+            // ===== FUNÇÃO: GERAR PDF (CORRIGIDA) =====
             function gerarPDF() {
                 var dados = coletarDados();
                 if (dados.equipamentos.length === 0) {
@@ -1977,39 +1982,107 @@
                     return;
                 }
 
+                // Mostrar mensagem de carregamento
+                showMessage('⏳ Gerando PDF, aguarde...', 'info');
+
+                // Criar o elemento PDF com estilo inline para garantir renderização
                 var pdfElement = document.createElement('div');
                 pdfElement.id = 'pdfSection';
+                pdfElement.style.cssText =
+                    'padding: 30px; background: white; border-radius: 16px; max-width: 800px; margin: 0 auto; font-family: Inter, sans-serif;';
+
+                // Construir a tabela
                 var tableRows = '';
                 dados.equipamentos.forEach(function(eq) {
-                    tableRows += '<tr><td><strong>' + eq.nome + '</strong></td><td style="text-align:right;">' + eq
-                        .potencia + '</td><td style="text-align:center;">' + eq.quantidade +
-                        '</td><td style="text-align:right;">' + eq.tempo.toFixed(1) +
-                        '</td><td style="text-align:right;">' + eq.consumo.toFixed(3) +
-                        '</td><td style="text-align:right;">R$ ' + eq.custo.toFixed(2) + '</td></tr>';
+                    tableRows += '<tr>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2;"><strong>' + eq.nome +
+                        '</strong></td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + eq
+                        .potencia + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:center;">' + eq
+                        .quantidade + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + eq
+                        .tempo.toFixed(1) + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right;">' + eq
+                        .consumo.toFixed(3) + '</td>' +
+                        '<td style="padding: 8px 12px; border-bottom: 1px solid #e9edf2; text-align:right; color:#0c5c64; font-weight:bold;">R$ ' +
+                        eq.custo.toFixed(2) + '</td>' +
+                        '</tr>';
                 });
 
-                pdfElement.innerHTML = '<h2>🔍 Relatório - Caça aos Equipamentos Elétricos</h2><div class="pdf-meta"><strong>Aluno:</strong> ' +
-                    dados.aluno + ' &nbsp;|&nbsp; <strong>Turma:</strong> ' + dados.turma + ' &nbsp;|&nbsp; <strong>Data:</strong> ' +
-                    dados.data + ' &nbsp;|&nbsp; <strong>Local:</strong> ' + dados.local +
-                    '<br><strong>Tarifa:</strong> ' + dados.tarifaLabel + ' — R$ ' + dados.tarifa.toFixed(2) +
-                    ' / kWh</div><table><thead><tr><th>Aparelho</th><th style="text-align:right;">Pot(W)</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Tempo(h/dia)</th><th style="text-align:right;">Consumo(kWh)</th><th style="text-align:right;">Custo(R$)</th></tr></thead><tbody>' +
-                    tableRows +
-                    '</tbody><tfoot><tr><td colspan="3"><strong>TOTAL GERAL</strong></td><td style="text-align:right;"></td><td style="text-align:right;font-size:14px;"><strong>' +
-                    dados.totalConsumo.toFixed(3) +
-                    ' kWh</strong></td><td style="text-align:right;font-size:14px;color:#0c5c64;"><strong>R$ ' + dados
-                    .totalCusto.toFixed(2) +
-                    '</strong></td></tr></tfoot></table><div style="margin-top:16px;font-size:11px;color:#94a3b8;border-top:1px solid #e9edf2;padding-top:12px;"><p>📌 Observações: Os dados foram coletados durante a atividade prática.</p><p>🔗 Relatório gerado automaticamente pelo sistema da Escola.</p></div>';
+                // Montar o HTML completo do PDF
+                pdfElement.innerHTML =
+                    '<div style="text-align:center; margin-bottom:24px;">' +
+                    '<h1 style="font-size:24px; font-weight:800; color:#0c5c64; margin:0;">🔍 Relatório - Caça aos Equipamentos Elétricos</h1>' +
+                    '<p style="color:#64748b; font-size:14px; margin-top:4px;">Atividade de Física — Ensino Médio</p>' +
+                    '</div>' +
 
+                    '<div style="background:#f8fafc; padding:16px; border-radius:12px; margin-bottom:20px; font-size:13px; color:#475569;">' +
+                    '<p style="margin:4px 0;"><strong>Aluno:</strong> ' + dados.aluno + ' &nbsp;|&nbsp; <strong>Turma:</strong> ' +
+                    dados.turma + '</p>' +
+                    '<p style="margin:4px 0;"><strong>Data da coleta:</strong> ' + dados.data + ' &nbsp;|&nbsp; <strong>Local:</strong> ' +
+                    dados.local + '</p>' +
+                    '<p style="margin:4px 0;"><strong>Tarifa aplicada:</strong> ' + dados.tarifaLabel + ' — R$ ' + dados
+                    .tarifa.toFixed(2) + ' / kWh</p>' +
+                    '</div>' +
+
+                    '<table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px;">' +
+                    '<thead>' +
+                    '<tr style="background:#0c5c64; color:white;">' +
+                    '<th style="padding:10px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Aparelho</th>' +
+                    '<th style="padding:10px 12px; text-align:right; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Pot(W)</th>' +
+                    '<th style="padding:10px 12px; text-align:center; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Qtd</th>' +
+                    '<th style="padding:10px 12px; text-align:right; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Tempo(h/dia)</th>' +
+                    '<th style="padding:10px 12px; text-align:right; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Consumo(kWh)</th>' +
+                    '<th style="padding:10px 12px; text-align:right; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Custo(R$)</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody>' +
+                    tableRows +
+                    '<tr style="background:#f0f7f8; font-weight:700;">' +
+                    '<td colspan="3" style="padding:12px; color:#0c5c64;">TOTAL GERAL</td>' +
+                    '<td style="padding:12px; text-align:right;"></td>' +
+                    '<td style="padding:12px; text-align:right; font-size:14px;">' + dados.totalConsumo.toFixed(3) +
+                    ' kWh</td>' +
+                    '<td style="padding:12px; text-align:right; font-size:14px; color:#0c5c64;">R$ ' + dados
+                    .totalCusto.toFixed(2) + '</td>' +
+                    '</tr>' +
+                    '</tbody>' +
+                    '</table>' +
+
+                    '<div style="border-top:1px solid #e9edf2; padding-top:12px; margin-top:16px; font-size:11px; color:#94a3b8; text-align:center;">' +
+                    '<p style="margin:4px 0;">📌 Os dados foram coletados durante a atividade prática.</p>' +
+                    '<p style="margin:4px 0;">🔗 Relatório gerado automaticamente pelo sistema.</p>' +
+                    '<p style="margin:4px 0; font-size:10px;">Gerado em: ' + new Date().toLocaleString('pt-BR') +
+                    '</p>' +
+                    '</div>';
+
+                // Adicionar ao body
                 document.body.appendChild(pdfElement);
 
+                // Forçar reflow para garantir renderização
+                pdfElement.offsetHeight;
+
+                // Configurações otimizadas do PDF
                 var opt = {
                     margin: [0.5, 0.5, 0.5, 0.5],
                     filename: 'relatorio_' + dados.aluno.replace(/\s/g, '_') + '_' + dados.data + '.pdf',
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        letterRendering: true,
+                        logging: false
+                    },
+                    jsPDF: {
+                        unit: 'in',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                 };
 
+                // Gerar PDF
                 html2pdf()
                     .set(opt)
                     .from(pdfElement)
@@ -2022,7 +2095,7 @@
                     .catch(function(err) {
                         document.body.removeChild(pdfElement);
                         showMessage('⚠️ Erro ao gerar o PDF. Tente novamente.', 'error');
-                        console.error(err);
+                        console.error('Erro ao gerar PDF:', err);
                     });
             }
 
@@ -2114,10 +2187,8 @@
                     } catch (e) { /* ignora */ }
                 }
 
-                // ===== EVENTO PRINCIPAL - ADICIONAR EQUIPAMENTO =====
+                // Eventos
                 addBtn.addEventListener('click', addEquipment);
-
-                // Outros eventos
                 resetBtn.addEventListener('click', resetForm);
                 loadSavedBtn.addEventListener('click', carregarLocal);
                 submitBtn.addEventListener('click', submitForm);
