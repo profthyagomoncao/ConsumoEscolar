@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🔍 Caça aos Equipamentos Elétricos</title>
 
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Bibliotecas para PDF e Gráficos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
 
     <style>
         /* ===== ESTILOS GERAIS ===== */
@@ -24,10 +31,166 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background: #0f1724;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .container {
+            background: #1a2332;
+            border-color: #2a3a5e;
+        }
+
+        body.dark-mode .header {
+            border-bottom-color: #2a3a5e;
+        }
+
+        body.dark-mode .header h1 {
+            color: #b4d534;
+        }
+
+        body.dark-mode .form-control {
+            background: #0f1724;
+            color: #e2e8f0;
+            border-color: #2a3a5e;
+        }
+
+        body.dark-mode .form-control:focus {
+            background: #1a2332;
+        }
+
+        body.dark-mode .equipment-section {
+            background: #0f1724;
+            border-color: #2a3a5e;
+        }
+
+        body.dark-mode .result-box {
+            background: #1a2332;
+            border-color: #0c5c64;
+        }
+
+        body.dark-mode .btn-add {
+            background: #2a3a5e;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .btn-add:hover {
+            background: #3a4a6e;
+        }
+
+        body.dark-mode .btn-outline {
+            border-color: #4a6a8e;
+            color: #b4d534;
+        }
+
+        body.dark-mode .btn-outline:hover {
+            background: #1a2a3e;
+        }
+
+        body.dark-mode .summary-section {
+            border-top-color: #2a3a5e;
+        }
+
+        body.dark-mode table td {
+            border-bottom-color: #2a3a5e;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode table tbody tr:hover {
+            background: #1a2a3e;
+        }
+
+        body.dark-mode .footer {
+            border-top-color: #2a3a5e;
+            color: #64748b;
+        }
+
+        body.dark-mode .file-input-wrapper .file-label {
+            background: #0f1724;
+            border-color: #2a3a5e;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .file-input-wrapper .file-label:hover {
+            border-color: #0c5c64;
+            background: #1a2a3e;
+        }
+
+        body.dark-mode .equipment-section .section-title {
+            color: #b4d534;
+        }
+
+        body.dark-mode .equipment-section .section-title .number {
+            background: #b4d534;
+            color: #0c5c64;
+        }
+
+        body.dark-mode .equipment-section .remove-btn {
+            background: #2a1a1a;
+            color: #ef4444;
+        }
+
+        body.dark-mode .equipment-section .remove-btn:hover {
+            background: #3a2a2a;
+        }
+
+        body.dark-mode .total-label {
+            color: #b4d534;
+        }
+
+        body.dark-mode .alert-success {
+            background: #1a3a2a;
+            border-color: #2a6a3a;
+            color: #86efac;
+        }
+
+        body.dark-mode .alert-error {
+            background: #2a1a1a;
+            border-color: #4a2a2a;
+            color: #fca5a5;
+        }
+
+        body.dark-mode .alert-info {
+            background: #1a2a4a;
+            border-color: #2a4a6a;
+            color: #93c5fd;
+        }
+
+        body.dark-mode .chart-section {
+            background: #0f1724;
+            border-color: #2a3a5e;
+        }
+
+        body.dark-mode .chart-section h3 {
+            color: #b4d534;
+        }
+
+        body.dark-mode .form-group label {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode select.form-control {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        }
+
+        body.dark-mode .image-preview-container img {
+            border-color: #2a3a5e;
+        }
+
+        body.dark-mode .dica-container {
+            background: linear-gradient(135deg, #1a3a2a, #2a4a3a);
+            color: #b4d534;
+        }
+
+        body.dark-mode .dica-container .dica-refresh {
+            background: rgba(180, 213, 52, 0.15);
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             background: #ffffff;
             border-radius: 24px;
@@ -35,6 +198,7 @@
             padding: 40px 35px;
             margin-top: 20px;
             margin-bottom: 40px;
+            transition: background 0.3s;
         }
 
         @media (max-width: 600px) {
@@ -43,12 +207,44 @@
             }
         }
 
+        /* ===== BOTÃO TEMA ESCURO ===== */
+        .theme-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0c5c64;
+            color: white;
+            border: none;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(12, 92, 100, 0.35);
+            transition: all 0.3s;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 30px rgba(12, 92, 100, 0.5);
+        }
+
+        body.dark-mode .theme-toggle {
+            background: #b4d534;
+            color: #0c5c64;
+        }
+
         /* ===== CABEÇALHO ===== */
         .header {
             text-align: center;
             margin-bottom: 36px;
             border-bottom: 2px solid #e9edf2;
             padding-bottom: 28px;
+            transition: border-color 0.3s;
         }
 
         .header-icon {
@@ -83,6 +279,49 @@
             margin-top: 8px;
         }
 
+        /* ===== DICA DO DIA ===== */
+        .dica-container {
+            background: linear-gradient(135deg, #b4d534, #c3e343);
+            color: #0c5c64;
+            padding: 14px 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(180, 213, 52, 0.25);
+            transition: all 0.3s;
+        }
+
+        .dica-container .dica-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .dica-container .dica-text {
+            flex: 1;
+        }
+
+        .dica-container .dica-refresh {
+            background: rgba(12, 92, 100, 0.15);
+            border: none;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dica-container .dica-refresh:hover {
+            background: rgba(12, 92, 100, 0.25);
+        }
+
         /* ===== FORMULÁRIO ===== */
         .form-group {
             margin-bottom: 18px;
@@ -101,12 +340,6 @@
             margin-left: 2px;
         }
 
-        .form-group .help-text {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
-
         .form-control {
             width: 100%;
             padding: 12px 16px;
@@ -115,7 +348,7 @@
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             background: #fafbfc;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
             outline: none;
             color: #1e293b;
         }
@@ -176,6 +409,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-top: 14px;
+            transition: background 0.3s, border-color 0.3s;
         }
 
         .result-box .result-item {
@@ -197,14 +431,47 @@
             margin-top: 2px;
         }
 
-        .result-box .result-item .value.positive {
-            color: #0c5c64;
-        }
-
         @media (max-width: 450px) {
             .result-box {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* ===== PREVIEW DA IMAGEM ===== */
+        .image-preview-container {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .image-preview-container img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            transition: border-color 0.3s;
+        }
+
+        .image-preview-container .preview-remove {
+            cursor: pointer;
+            font-size: 18px;
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .image-preview-container .preview-remove:hover {
+            background: rgba(220, 38, 38, 0.2);
         }
 
         /* ===== SEÇÃO DE EQUIPAMENTO ===== */
@@ -215,7 +482,7 @@
             padding: 24px 24px 18px;
             margin-top: 28px;
             position: relative;
-            transition: all 0.2s;
+            transition: all 0.2s, background 0.3s, border-color 0.3s;
         }
 
         .equipment-section:first-of-type {
@@ -339,12 +606,6 @@
             background: #dde3e9;
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
         .btn-email {
             background: #1e40af;
             color: white;
@@ -354,6 +615,34 @@
             background: #1e3a8a;
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(30, 64, 175, 0.25);
+        }
+
+        .btn-pdf {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25);
+        }
+
+        .btn-csv {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-csv:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(22, 163, 74, 0.25);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
         @media (max-width: 600px) {
@@ -366,11 +655,38 @@
             }
         }
 
+        /* ===== SEÇÃO DE GRÁFICO ===== */
+        .chart-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 2px solid #e9edf2;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .chart-section h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0c5c64;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 220px;
+            max-width: 100%;
+        }
+
         /* ===== TABELA DE RESUMO ===== */
         .summary-section {
             margin-top: 32px;
             padding-top: 24px;
             border-top: 2px solid #e9edf2;
+            transition: border-color 0.3s;
         }
 
         .summary-section h3 {
@@ -387,6 +703,7 @@
             overflow-x: auto;
             border-radius: 12px;
             border: 2px solid #e9edf2;
+            transition: border-color 0.3s;
         }
 
         table {
@@ -414,6 +731,7 @@
             padding: 11px 14px;
             border-bottom: 1px solid #e9edf2;
             color: #1e293b;
+            transition: border-color 0.3s, color 0.3s;
         }
 
         table tbody tr:hover {
@@ -481,6 +799,7 @@
             text-align: center;
             font-size: 13px;
             color: #94a3b8;
+            transition: border-color 0.3s, color 0.3s;
         }
 
         /* ===== FOTO ===== */
@@ -539,21 +858,82 @@
         @media print {
             .btn-group,
             .btn-add,
-            .remove-btn {
+            .remove-btn,
+            .theme-toggle,
+            .dica-container,
+            .dica-refresh {
                 display: none !important;
             }
             .container {
                 box-shadow: none;
                 border: 1px solid #ddd;
+                padding: 20px !important;
             }
             .equipment-section {
                 break-inside: avoid;
-                border-color: #ccc;
+                border-color: #ccc !important;
+                background: white !important;
+            }
+            .chart-section {
+                break-inside: avoid;
+            }
+        }
+
+        /* ===== SEÇÃO DE IMPRESSÃO PARA PDF ===== */
+        #pdfSection {
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+        }
+
+        #pdfSection h2 {
+            color: #0c5c64;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        #pdfSection .pdf-meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        #pdfSection .pdf-meta strong {
+            color: #0c5c64;
+        }
+
+        #pdfSection table {
+            font-size: 12px;
+            min-width: auto;
+        }
+
+        #pdfSection table th {
+            font-size: 10px;
+            padding: 8px 10px;
+        }
+
+        #pdfSection table td {
+            padding: 8px 10px;
+        }
+
+        @media print {
+            #pdfSection {
+                padding: 0;
+                background: transparent;
+            }
+            #pdfSection .pdf-meta {
+                background: #f8fafc;
             }
         }
     </style>
 </head>
 <body>
+
+    <!-- ===== BOTÃO TEMA ESCURO ===== -->
+    <button class="theme-toggle" id="themeToggle" title="Alternar tema escuro">🌙</button>
 
     <div class="container" id="app">
 
@@ -565,11 +945,18 @@
             <span class="badge">📸 Tire fotos e colete os dados técnicos</span>
         </div>
 
+        <!-- ===== DICA DO DIA ===== -->
+        <div class="dica-container" id="dicaContainer">
+            <span class="dica-icon">💡</span>
+            <span class="dica-text" id="dicaTexto">Troque lâmpadas incandescentes por LED e economize até 80%</span>
+            <button class="dica-refresh" id="dicaRefresh" title="Nova dica">🔄</button>
+        </div>
+
         <!-- ===== FORMULÁRIO ===== -->
         <form id="activityForm" novalidate>
 
             <!-- ===== IDENTIFICAÇÃO DO ALUNO ===== -->
-            <div style="background: #f8fafc; padding: 20px 22px; border-radius: 16px; margin-bottom: 10px;">
+            <div style="background: #f8fafc; padding: 20px 22px; border-radius: 16px; margin-bottom: 10px; transition: background 0.3s;">
                 <h3 style="font-size: 16px; color: #0c5c64; margin-bottom: 16px;">📝 Identificação do Aluno</h3>
 
                 <div class="form-row-2">
@@ -596,7 +983,7 @@
             </div>
 
             <!-- ===== TARIFA ===== -->
-            <div style="background: #f8fafc; padding: 18px 22px; border-radius: 16px; margin-top: 16px;">
+            <div style="background: #f8fafc; padding: 18px 22px; border-radius: 16px; margin-top: 16px; transition: background 0.3s;">
                 <h3 style="font-size: 16px; color: #0c5c64; margin-bottom: 14px;">⚡ Categoria de Tarifa</h3>
                 <div class="form-group">
                     <label for="tariffType">Selecione a categoria <span class="required">*</span></label>
@@ -618,6 +1005,14 @@
                 <button type="button" class="btn btn-add" id="addEquipmentBtn" style="width: 100%; justify-content: center;">
                     ➕ Adicionar outro equipamento
                 </button>
+            </div>
+
+            <!-- ===== GRÁFICO ===== -->
+            <div class="chart-section" id="chartSection">
+                <h3>📊 Consumo por Equipamento</h3>
+                <div class="chart-wrapper">
+                    <canvas id="consumoChart"></canvas>
+                </div>
             </div>
 
             <!-- ===== RESUMO ===== -->
@@ -643,7 +1038,7 @@
                         </tfoot>
                     </table>
                 </div>
-                <div style="margin-top: 12px; font-size: 13px; color: #64748b; text-align: right;">
+                <div style="margin-top: 12px; font-size: 13px; color: #64748b; text-align: right; transition: color 0.3s;">
                     * Tarifa aplicada: <span id="displayTariff">R$ 0,92 / kWh</span>
                 </div>
             </div>
@@ -654,10 +1049,19 @@
                     <button type="button" class="btn btn-outline" id="resetFormBtn">
                         🗑️ Limpar tudo
                     </button>
+                    <button type="button" class="btn btn-outline" id="loadSavedBtn" title="Carregar dados salvos">
+                        📂 Carregar salvos
+                    </button>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-csv" id="exportCsvBtn">
+                        📊 Exportar CSV
+                    </button>
+                    <button type="button" class="btn btn-pdf" id="exportPdfBtn">
+                        📄 Gerar PDF
+                    </button>
                     <button type="button" class="btn btn-email" id="sendEmailBtn">
-                        📧 Enviar por E-mail
+                        📧 Enviar E-mail
                     </button>
                     <button type="submit" class="btn btn-success" id="submitBtn">
                         📤 Atualizar Resumo
@@ -679,7 +1083,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== JAVASCRIPT ===== -->
+    <!-- ===== JAVASCRIPT CORRIGIDO (FUNÇÃO ADD EQUIPAMENTO FIXA) ==== -->
     <!-- ============================================================ -->
     <script>
         (function() {
@@ -689,178 +1093,71 @@
             const container = document.getElementById('equipmentContainer');
             const addBtn = document.getElementById('addEquipmentBtn');
             const resetBtn = document.getElementById('resetFormBtn');
+            const loadSavedBtn = document.getElementById('loadSavedBtn');
             const submitBtn = document.getElementById('submitBtn');
             const sendEmailBtn = document.getElementById('sendEmailBtn');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
             const form = document.getElementById('activityForm');
             const messageBox = document.getElementById('messageBox');
             const summaryBody = document.getElementById('summaryBody');
             const summaryFooter = document.getElementById('summaryFooter');
             const displayTariff = document.getElementById('displayTariff');
             const tariffSelect = document.getElementById('tariffType');
+            const themeToggle = document.getElementById('themeToggle');
+            const dicaTexto = document.getElementById('dicaTexto');
+            const dicaRefresh = document.getElementById('dicaRefresh');
 
             let equipmentCounter = 0;
+            let chartInstance = null;
+            let imageDataUrls = {};
 
-            // ===== FUNÇÃO: CRIAR SEÇÃO DE EQUIPAMENTO =====
-            function createEquipmentSection(index) {
-                const section = document.createElement('div');
-                section.className = 'equipment-section';
-                section.dataset.index = index;
+            // ===== DICAS DE ECONOMIA =====
+            var dicas = [
+                '💡 Troque lâmpadas incandescentes por LED e economize até 80% de energia',
+                '⚡ Desligue aparelhos da tomada quando não estiver usando (modo stand-by consome energia)',
+                '🌡️ Mantenha a temperatura do ar condicionado em 23°C - cada grau a menos aumenta 6% no consumo',
+                '🚿 Reduza o tempo do banho para 5 minutos - o chuveiro é um dos maiores vilões da conta',
+                '🧺 Use a máquina de lavar com carga completa - cada ciclo consome a mesma energia',
+                '❄️ Não coloque alimentos quentes na geladeira - isso força o motor a trabalhar mais',
+                '🪟 Aproveite a luz natural e reduza o uso de lâmpadas durante o dia',
+                '📺 TVs e monitores: reduza o brilho para economizar até 30% de energia',
+                '🔌 Use régua com interruptor para desligar vários aparelhos de uma vez',
+                '🍳 Panelas de pressão e forno elétrico: use tampas para reter calor e cozinhar mais rápido'
+            ];
 
-                // Título
-                const title = document.createElement('div');
-                title.className = 'section-title';
-                title.innerHTML = `
-                    <span class="number">${index}</span>
-                    Equipamento ${index}
-                `;
-
-                // Botão remover
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.className = 'remove-btn';
-                removeBtn.innerHTML = '✕';
-                removeBtn.title = 'Remover este equipamento';
-                removeBtn.disabled = true;
-
-                // Campos
-                const fields = document.createElement('div');
-
-                // Nome
-                fields.appendChild(createFieldGroup(
-                    `equip_name_${index}`,
-                    'Nome do aparelho *',
-                    'text',
-                    'Ex: Ar Condicionado, Chuveiro, Geladeira...',
-                    true
-                ));
-
-                // Marca
-                fields.appendChild(createFieldGroup(
-                    `equip_brand_${index}`,
-                    'Marca / Modelo',
-                    'text',
-                    'Ex: Springer Midea, Lorenzetti...',
-                    false
-                ));
-
-                // Potência
-                fields.appendChild(createFieldGroup(
-                    `equip_power_${index}`,
-                    'Potência (W) *',
-                    'number',
-                    'Ex: 1400, 5400, 200...',
-                    true
-                ));
-
-                // Quantidade
-                fields.appendChild(createFieldGroup(
-                    `equip_quantity_${index}`,
-                    'Quantidade *',
-                    'number',
-                    'Ex: 1, 2, 3...',
-                    true
-                ));
-
-                // Tempo
-                fields.appendChild(createFieldGroup(
-                    `equip_time_${index}`,
-                    'Tempo (horas/dia) *',
-                    'number',
-                    'Ex: 2.5, 8, 0.5...',
-                    true
-                ));
-
-                // Tipo
-                fields.appendChild(createSelectGroup(
-                    `equip_type_${index}`,
-                    'Tipo de equipamento *',
-                    [
-                        { value: '', label: 'Selecione...' },
-                        { value: 'eletrodomestico', label: 'Eletrodoméstico' },
-                        { value: 'informatica', label: 'Informática / TI' },
-                        { value: 'iluminacao', label: 'Iluminação' },
-                        { value: 'ferramenta', label: 'Ferramenta Elétrica' },
-                        { value: 'audio_video', label: 'Áudio / Vídeo' },
-                        { value: 'outro', label: 'Outro' }
-                    ],
-                    true
-                ));
-
-                // Foto
-                fields.appendChild(createFileGroup(
-                    `equip_photo_${index}`,
-                    'Foto do equipamento'
-                ));
-
-                // Observações
-                fields.appendChild(createFieldGroup(
-                    `equip_obs_${index}`,
-                    'Observações',
-                    'textarea',
-                    'Informações adicionais...',
-                    false
-                ));
-
-                // ===== RESULTADOS AUTOMÁTICOS =====
-                const resultBox = document.createElement('div');
-                resultBox.className = 'result-box';
-                resultBox.id = `result_${index}`;
-                resultBox.innerHTML = `
-                    <div class="result-item">
-                        <div class="label">⚡ Consumo (kWh/dia)</div>
-                        <div class="value positive" id="consumo_${index}">0,000</div>
-                    </div>
-                    <div class="result-item">
-                        <div class="label">💰 Custo (R$)</div>
-                        <div class="value positive" id="custo_${index}">R$ 0,00</div>
-                    </div>
-                `;
-
-                // Monta a seção
-                section.appendChild(title);
-                section.appendChild(removeBtn);
-                section.appendChild(fields);
-                section.appendChild(resultBox);
-
-                // Evento remover
-                removeBtn.addEventListener('click', function() {
-                    if (document.querySelectorAll('.equipment-section').length <= 1) return;
-                    section.remove();
-                    updateIndexes();
-                    updateRemoveButtons();
-                    updateSummary();
-                });
-
-                // Eventos para cálculo automático
-                const powerInput = fields.querySelector(`#equip_power_${index}`);
-                const timeInput = fields.querySelector(`#equip_time_${index}`);
-                const qtyInput = fields.querySelector(`#equip_quantity_${index}`);
-
-                const calcFunction = () => calculateEquipment(index);
-                powerInput.addEventListener('input', calcFunction);
-                timeInput.addEventListener('input', calcFunction);
-                qtyInput.addEventListener('input', calcFunction);
-                tariffSelect.addEventListener('change', () => {
-                    calculateEquipment(index);
-                    updateSummary();
-                });
-
-                // Inicializa cálculo
-                setTimeout(() => calculateEquipment(index), 50);
-
-                return section;
+            function exibirDicaAleatoria() {
+                var dica = dicas[Math.floor(Math.random() * dicas.length)];
+                dicaTexto.textContent = dica;
             }
 
+            dicaRefresh.addEventListener('click', exibirDicaAleatoria);
+
+            // ===== TEMA ESCURO =====
+            function toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                var isDark = document.body.classList.contains('dark-mode');
+                themeToggle.textContent = isDark ? '☀️' : '🌙';
+                localStorage.setItem('tema', isDark ? 'dark' : 'light');
+            }
+
+            if (localStorage.getItem('tema') === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            }
+
+            themeToggle.addEventListener('click', toggleTheme);
+
             // ===== FUNÇÃO: CRIAR CAMPO =====
-            function createFieldGroup(id, labelText, type, placeholder, required) {
-                const group = document.createElement('div');
+            function createFieldGroup(id, labelText, type, placeholder, required, value) {
+                var group = document.createElement('div');
                 group.className = 'form-group';
 
-                const label = document.createElement('label');
+                var label = document.createElement('label');
                 label.htmlFor = id;
                 label.innerHTML = labelText + (required ? ' <span class="required">*</span>' : '');
 
-                const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+                var input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
                 input.id = id;
                 input.className = 'form-control';
                 if (type !== 'textarea') {
@@ -874,6 +1171,9 @@
                     input.step = 'any';
                     input.min = '0';
                 }
+                if (value !== undefined && value !== '' && value !== null) {
+                    input.value = value;
+                }
 
                 group.appendChild(label);
                 group.appendChild(input);
@@ -881,23 +1181,26 @@
             }
 
             // ===== FUNÇÃO: CRIAR SELECT =====
-            function createSelectGroup(id, labelText, options, required) {
-                const group = document.createElement('div');
+            function createSelectGroup(id, labelText, options, required, value) {
+                var group = document.createElement('div');
                 group.className = 'form-group';
 
-                const label = document.createElement('label');
+                var label = document.createElement('label');
                 label.htmlFor = id;
                 label.innerHTML = labelText + (required ? ' <span class="required">*</span>' : '');
 
-                const select = document.createElement('select');
+                var select = document.createElement('select');
                 select.id = id;
                 select.className = 'form-control';
                 if (required) select.required = true;
 
-                options.forEach(opt => {
-                    const option = document.createElement('option');
+                options.forEach(function(opt) {
+                    var option = document.createElement('option');
                     option.value = opt.value;
                     option.textContent = opt.label;
+                    if (value !== undefined && value !== '' && value === opt.value) {
+                        option.selected = true;
+                    }
                     select.appendChild(option);
                 });
 
@@ -907,184 +1210,688 @@
             }
 
             // ===== FUNÇÃO: CRIAR CAMPO DE FOTO =====
-            function createFileGroup(id, labelText) {
-                const group = document.createElement('div');
+            function createFileGroup(id, labelText, savedImage) {
+                var group = document.createElement('div');
                 group.className = 'form-group';
 
-                const label = document.createElement('label');
+                var label = document.createElement('label');
                 label.htmlFor = id;
                 label.textContent = labelText;
 
-                const wrapper = document.createElement('div');
+                var wrapper = document.createElement('div');
                 wrapper.className = 'file-input-wrapper';
 
-                const fileLabel = document.createElement('div');
+                var fileLabel = document.createElement('div');
                 fileLabel.className = 'file-label';
-                fileLabel.innerHTML = `📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>`;
+                fileLabel.innerHTML =
+                    '📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>';
 
-                const input = document.createElement('input');
+                var input = document.createElement('input');
                 input.type = 'file';
                 input.id = id;
                 input.accept = 'image/*';
+
+                var previewContainer = document.createElement('div');
+                previewContainer.className = 'image-preview-container';
+                previewContainer.id = 'preview_' + id;
+
                 input.addEventListener('change', function() {
+                    var container = document.getElementById('preview_' + id);
+                    if (!container) return;
+                    container.innerHTML = '';
+
                     if (this.files && this.files[0]) {
-                        const nameSpan = document.createElement('span');
-                        nameSpan.className = 'file-name';
-                        nameSpan.textContent = ` 📎 ${this.files[0].name}`;
-                        fileLabel.innerHTML = `📷 Foto selecionada: `;
-                        fileLabel.appendChild(nameSpan);
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            imageDataUrls[id] = e.target.result;
+
+                            var img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.alt = 'Preview da foto';
+
+                            var removeBtn = document.createElement('button');
+                            removeBtn.className = 'preview-remove';
+                            removeBtn.innerHTML = '✕';
+                            removeBtn.title = 'Remover foto';
+                            removeBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                container.innerHTML = '';
+                                delete imageDataUrls[id];
+                                input.value = '';
+                                fileLabel.innerHTML =
+                                    '📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>';
+                            });
+
+                            container.appendChild(img);
+                            container.appendChild(removeBtn);
+
+                            fileLabel.innerHTML = '📷 Foto selecionada: ';
+                            var nameSpan = document.createElement('span');
+                            nameSpan.className = 'file-name';
+                            nameSpan.textContent = ' 📎 ' + input.files[0].name;
+                            fileLabel.appendChild(nameSpan);
+                        };
+                        reader.readAsDataURL(this.files[0]);
                     }
                 });
+
+                if (savedImage) {
+                    imageDataUrls[id] = savedImage;
+                }
 
                 wrapper.appendChild(input);
                 wrapper.appendChild(fileLabel);
                 group.appendChild(label);
                 group.appendChild(wrapper);
+                group.appendChild(previewContainer);
                 return group;
             }
 
             // ===== FUNÇÃO: CALCULAR EQUIPAMENTO =====
             function calculateEquipment(index) {
-                const powerInput = document.getElementById(`equip_power_${index}`);
-                const timeInput = document.getElementById(`equip_time_${index}`);
-                const qtyInput = document.getElementById(`equip_quantity_${index}`);
-                const consumoEl = document.getElementById(`consumo_${index}`);
-                const custoEl = document.getElementById(`custo_${index}`);
+                var powerInput = document.getElementById('equip_power_' + index);
+                var timeInput = document.getElementById('equip_time_' + index);
+                var qtyInput = document.getElementById('equip_quantity_' + index);
+                var consumoEl = document.getElementById('consumo_' + index);
+                var custoEl = document.getElementById('custo_' + index);
 
                 if (!powerInput || !timeInput || !qtyInput || !consumoEl || !custoEl) return;
 
-                const power = parseFloat(powerInput.value) || 0;
-                const time = parseFloat(timeInput.value) || 0;
-                const qty = parseFloat(qtyInput.value) || 1;
-                const tariff = parseFloat(tariffSelect.value) || 0.92;
+                var power = parseFloat(powerInput.value) || 0;
+                var time = parseFloat(timeInput.value) || 0;
+                var qty = parseFloat(qtyInput.value) || 1;
+                var tariff = parseFloat(tariffSelect.value) || 0.92;
 
-                // CONSUMO = POTÊNCIA * TEMPO * QUANTIDADE / 1000 (kWh)
-                const consumo = (power * time * qty) / 1000;
-                const custo = consumo * tariff;
+                var consumo = (power * time * qty) / 1000;
+                var custo = consumo * tariff;
 
                 consumoEl.textContent = consumo.toFixed(3);
-                custoEl.textContent = `R$ ${custo.toFixed(2)}`;
+                custoEl.textContent = 'R$ ' + custo.toFixed(2);
 
-                // Atualiza resumo
                 updateSummary();
+                updateChart();
             }
 
-            // ===== FUNÇÃO: ATUALIZAR RESUMO =====
-            function updateSummary() {
-                const sections = document.querySelectorAll('.equipment-section');
-                const tariff = parseFloat(tariffSelect.value) || 0.92;
-                displayTariff.textContent = `R$ ${tariff.toFixed(2)} / kWh`;
+            // ===== FUNÇÃO: CRIAR SEÇÃO DE EQUIPAMENTO =====
+            function createEquipmentSection(index, savedData) {
+                var section = document.createElement('div');
+                section.className = 'equipment-section';
+                section.dataset.index = index;
 
-                let totalConsumo = 0;
-                let totalCusto = 0;
-                let rows = '';
+                // Título
+                var title = document.createElement('div');
+                title.className = 'section-title';
+                title.innerHTML = '<span class="number">' + index + '</span> Equipamento ' + index;
 
-                sections.forEach((section, idx) => {
-                    const num = idx + 1;
-                    const nameEl = document.getElementById(`equip_name_${num}`);
-                    const powerEl = document.getElementById(`equip_power_${num}`);
-                    const qtyEl = document.getElementById(`equip_quantity_${num}`);
-                    const timeEl = document.getElementById(`equip_time_${num}`);
+                // Botão remover
+                var removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '✕';
+                removeBtn.title = 'Remover este equipamento';
+                removeBtn.disabled = true;
 
-                    const name = nameEl ? nameEl.value.trim() : '---';
-                    const power = parseFloat(powerEl?.value) || 0;
-                    const qty = parseFloat(qtyEl?.value) || 1;
-                    const time = parseFloat(timeEl?.value) || 0;
-                    const consumo = (power * time * qty) / 1000;
-                    const custo = consumo * tariff;
+                // Campos
+                var fields = document.createElement('div');
 
-                    totalConsumo += consumo;
-                    totalCusto += custo;
+                // Nome
+                fields.appendChild(createFieldGroup(
+                    'equip_name_' + index,
+                    'Nome do aparelho *',
+                    'text',
+                    'Ex: Ar Condicionado, Chuveiro, Geladeira...',
+                    true,
+                    savedData?.nome || ''
+                ));
 
-                    if (name && power > 0) {
-                        rows += `
-                            <tr>
-                                <td><strong>${name}</strong></td>
-                                <td class="text-right">${power}</td>
-                                <td class="text-center">${qty}</td>
-                                <td class="text-right">${time.toFixed(1)}</td>
-                                <td class="text-right">${consumo.toFixed(3)}</td>
-                                <td class="text-right">R$ ${custo.toFixed(2)}</td>
-                            </tr>
-                        `;
-                    }
+                // Marca
+                fields.appendChild(createFieldGroup(
+                    'equip_brand_' + index,
+                    'Marca / Modelo',
+                    'text',
+                    'Ex: Springer Midea, Lorenzetti...',
+                    false,
+                    savedData?.marca || ''
+                ));
+
+                // Potência
+                fields.appendChild(createFieldGroup(
+                    'equip_power_' + index,
+                    'Potência (W) *',
+                    'number',
+                    'Ex: 1400, 5400, 200...',
+                    true,
+                    savedData?.potencia || ''
+                ));
+
+                // Quantidade
+                fields.appendChild(createFieldGroup(
+                    'equip_quantity_' + index,
+                    'Quantidade *',
+                    'number',
+                    'Ex: 1, 2, 3...',
+                    true,
+                    savedData?.quantidade || '1'
+                ));
+
+                // Tempo
+                fields.appendChild(createFieldGroup(
+                    'equip_time_' + index,
+                    'Tempo (horas/dia) *',
+                    'number',
+                    'Ex: 2.5, 8, 0.5...',
+                    true,
+                    savedData?.tempo || ''
+                ));
+
+                // Tipo
+                fields.appendChild(createSelectGroup(
+                    'equip_type_' + index,
+                    'Tipo de equipamento *',
+                    [
+                        { value: '', label: 'Selecione...' },
+                        { value: 'eletrodomestico', label: 'Eletrodoméstico' },
+                        { value: 'informatica', label: 'Informática / TI' },
+                        { value: 'iluminacao', label: 'Iluminação' },
+                        { value: 'ferramenta', label: 'Ferramenta Elétrica' },
+                        { value: 'audio_video', label: 'Áudio / Vídeo' },
+                        { value: 'outro', label: 'Outro' }
+                    ],
+                    true,
+                    savedData?.tipo || ''
+                ));
+
+                // Foto
+                fields.appendChild(createFileGroup(
+                    'equip_photo_' + index,
+                    'Foto do equipamento',
+                    savedData?.foto || null
+                ));
+
+                // Observações
+                fields.appendChild(createFieldGroup(
+                    'equip_obs_' + index,
+                    'Observações',
+                    'textarea',
+                    'Informações adicionais...',
+                    false,
+                    savedData?.observacoes || ''
+                ));
+
+                // ===== RESULTADOS AUTOMÁTICOS =====
+                var resultBox = document.createElement('div');
+                resultBox.className = 'result-box';
+                resultBox.id = 'result_' + index;
+                resultBox.innerHTML = '<div class="result-item"><div class="label">⚡ Consumo (kWh/dia)</div><div class="value positive" id="consumo_' + index + '">0,000</div></div><div class="result-item"><div class="label">💰 Custo (R$)</div><div class="value positive" id="custo_' + index + '">R$ 0,00</div></div>';
+
+                // Monta a seção
+                section.appendChild(title);
+                section.appendChild(removeBtn);
+                section.appendChild(fields);
+                section.appendChild(resultBox);
+
+                // Evento remover
+                removeBtn.addEventListener('click', function() {
+                    if (document.querySelectorAll('.equipment-section').length <= 1) return;
+                    section.remove();
+                    delete imageDataUrls['equip_photo_' + index];
+                    updateIndexes();
+                    updateRemoveButtons();
+                    updateSummary();
+                    updateChart();
                 });
 
-                summaryBody.innerHTML = rows || `
-                    <tr>
-                        <td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">
-                            Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.
-                        </td>
-                    </tr>
-                `;
+                // Eventos para cálculo automático
+                var powerInput = fields.querySelector('#equip_power_' + index);
+                var timeInput = fields.querySelector('#equip_time_' + index);
+                var qtyInput = fields.querySelector('#equip_quantity_' + index);
 
-                summaryFooter.innerHTML = `
-                    <tr>
-                        <td colspan="3" class="total-label">TOTAL GERAL</td>
-                        <td class="text-right"></td>
-                        <td class="text-right" style="font-size:16px;">${totalConsumo.toFixed(3)} kWh</td>
-                        <td class="text-right" style="font-size:16px; color:#0c5c64;">R$ ${totalCusto.toFixed(2)}</td>
-                    </tr>
-                `;
-            }
+                var calcFunction = function() { calculateEquipment(index); };
+                powerInput.addEventListener('input', calcFunction);
+                timeInput.addEventListener('input', calcFunction);
+                qtyInput.addEventListener('input', calcFunction);
+                tariffSelect.addEventListener('change', function() {
+                    calculateEquipment(index);
+                    updateSummary();
+                    updateChart();
+                });
 
-            // ===== FUNÇÃO: ATUALIZAR ÍNDICES =====
-            function updateIndexes() {
-                const sections = document.querySelectorAll('.equipment-section');
-                sections.forEach((section, idx) => {
-                    const num = idx + 1;
-                    section.dataset.index = num;
-                    const numberSpan = section.querySelector('.section-title .number');
-                    if (numberSpan) numberSpan.textContent = num;
-                    const titleText = section.querySelector('.section-title');
-                    if (titleText) {
-                        const textNode = titleText.childNodes[2];
-                        if (textNode) textNode.textContent = ` Equipamento ${num}`;
-                    }
-                    // Atualiza IDs
-                    const inputs = section.querySelectorAll('input, select, textarea');
-                    inputs.forEach(input => {
-                        const oldId = input.id;
-                        if (oldId) {
-                            const parts = oldId.split('_');
-                            if (parts.length >= 3) {
-                                const newId = parts[0] + '_' + parts[1] + '_' + num;
-                                input.id = newId;
-                                const label = section.querySelector(`label[for="${oldId}"]`);
-                                if (label) label.htmlFor = newId;
+                // Restaurar preview da imagem se houver
+                if (savedData?.foto) {
+                    setTimeout(function() {
+                        var container = document.getElementById('preview_equip_photo_' + index);
+                        if (container) {
+                            var img = document.createElement('img');
+                            img.src = savedData.foto;
+                            img.alt = 'Preview da foto';
+                            container.appendChild(img);
+
+                            var fileLabel = document.querySelector('#equip_photo_' + index)?.closest(
+                                '.file-input-wrapper')?.querySelector('.file-label');
+                            if (fileLabel) {
+                                fileLabel.innerHTML = '📷 Foto selecionada: ';
+                                var nameSpan = document.createElement('span');
+                                nameSpan.className = 'file-name';
+                                nameSpan.textContent = ' 📎 ' + (savedData.fotoNome || '(imagem salva)');
+                                fileLabel.appendChild(nameSpan);
                             }
                         }
-                    });
-                    // Atualiza IDs dos resultados
-                    const consumoEl = document.getElementById(`consumo_${idx + 1}`);
-                    const custoEl = document.getElementById(`custo_${idx + 1}`);
-                    if (consumoEl) consumoEl.id = `consumo_${num}`;
-                    if (custoEl) custoEl.id = `custo_${num}`;
-                    const resultBox = section.querySelector('.result-box');
-                    if (resultBox) resultBox.id = `result_${num}`;
-                });
-                updateSummary();
-            }
+                    }, 50);
+                }
 
-            // ===== FUNÇÃO: ATUALIZAR BOTÕES REMOVER =====
-            function updateRemoveButtons() {
-                const sections = document.querySelectorAll('.equipment-section');
-                document.querySelectorAll('.remove-btn').forEach((btn, idx) => {
-                    btn.disabled = sections.length <= 1;
-                });
+                // Inicializa cálculo
+                setTimeout(function() { calculateEquipment(index); }, 100);
+
+                return section;
             }
 
             // ===== FUNÇÃO: ADICIONAR EQUIPAMENTO =====
             function addEquipment() {
-                const sections = document.querySelectorAll('.equipment-section');
-                const newIndex = sections.length + 1;
-                const newSection = createEquipmentSection(newIndex);
+                var sections = document.querySelectorAll('.equipment-section');
+                var newIndex = sections.length + 1;
+                var newSection = createEquipmentSection(newIndex);
                 container.appendChild(newSection);
                 updateRemoveButtons();
                 updateSummary();
-                setTimeout(() => {
+                updateChart();
+                setTimeout(function() {
                     newSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 100);
+            }
+
+            // ===== FUNÇÃO: ADICIONAR EQUIPAMENTO COM DADOS =====
+            function addEquipmentWithData(data) {
+                var sections = document.querySelectorAll('.equipment-section');
+                var newIndex = sections.length + 1;
+                var newSection = createEquipmentSection(newIndex, data);
+                container.appendChild(newSection);
+                updateRemoveButtons();
+                updateSummary();
+                updateChart();
+                setTimeout(function() {
+                    newSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(function() { calculateEquipment(newIndex); }, 100);
+                }, 100);
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR ÍNDICES =====
+            function updateIndexes() {
+                var sections = document.querySelectorAll('.equipment-section');
+                sections.forEach(function(section, idx) {
+                    var num = idx + 1;
+                    section.dataset.index = num;
+                    var numberSpan = section.querySelector('.section-title .number');
+                    if (numberSpan) numberSpan.textContent = num;
+                    var titleText = section.querySelector('.section-title');
+                    if (titleText) {
+                        var textNode = titleText.childNodes[2];
+                        if (textNode) textNode.textContent = ' Equipamento ' + num;
+                    }
+
+                    var inputs = section.querySelectorAll('input, select, textarea');
+                    inputs.forEach(function(input) {
+                        var oldId = input.id;
+                        if (oldId) {
+                            var parts = oldId.split('_');
+                            if (parts.length >= 3) {
+                                var newId = parts[0] + '_' + parts[1] + '_' + num;
+                                input.id = newId;
+                                var label = section.querySelector('label[for="' + oldId + '"]');
+                                if (label) label.htmlFor = newId;
+                            }
+                        }
+                    });
+
+                    var consumoEl = document.getElementById('consumo_' + (idx + 1));
+                    var custoEl = document.getElementById('custo_' + (idx + 1));
+                    if (consumoEl) consumoEl.id = 'consumo_' + num;
+                    if (custoEl) custoEl.id = 'custo_' + num;
+                    var resultBox = section.querySelector('.result-box');
+                    if (resultBox) resultBox.id = 'result_' + num;
+
+                    var previews = section.querySelectorAll('.image-preview-container');
+                    previews.forEach(function(preview) {
+                        var oldId = preview.id;
+                        if (oldId) {
+                            var newId = 'preview_equip_photo_' + num;
+                            preview.id = newId;
+                        }
+                    });
+
+                    var oldPhotoKey = 'equip_photo_' + (idx + 1);
+                    var newPhotoKey = 'equip_photo_' + num;
+                    if (imageDataUrls[oldPhotoKey]) {
+                        imageDataUrls[newPhotoKey] = imageDataUrls[oldPhotoKey];
+                        delete imageDataUrls[oldPhotoKey];
+                    }
+                });
+                updateSummary();
+                updateChart();
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR BOTÕES REMOVER =====
+            function updateRemoveButtons() {
+                var sections = document.querySelectorAll('.equipment-section');
+                document.querySelectorAll('.remove-btn').forEach(function(btn, idx) {
+                    btn.disabled = sections.length <= 1;
+                });
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR GRÁFICO =====
+            function updateChart() {
+                var ctx = document.getElementById('consumoChart');
+                if (!ctx) return;
+
+                var sections = document.querySelectorAll('.equipment-section');
+                var labels = [];
+                var data = [];
+                var colors = ['#0c5c64', '#b4d534', '#1e40af', '#dc2626', '#16a34a', '#eab308', '#8b5cf6', '#ec4899'];
+
+                sections.forEach(function(section, idx) {
+                    var num = idx + 1;
+                    var nameEl = document.getElementById('equip_name_' + num);
+                    var consumoEl = document.getElementById('consumo_' + num);
+                    var name = nameEl ? nameEl.value.trim() : '---';
+                    var consumo = consumoEl ? parseFloat(consumoEl.textContent.replace(',', '.')) || 0 : 0;
+
+                    if (name !== '---' && consumo > 0) {
+                        labels.push(name.length > 15 ? name.substring(0, 12) + '...' : name);
+                        data.push(consumo);
+                    }
+                });
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+
+                if (data.length === 0) {
+                    var parent = ctx.parentElement;
+                    parent.innerHTML =
+                        '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;text-align:center;padding:20px;">📊 Adicione equipamentos para visualizar o gráfico de consumo</div>';
+                    var canvas = document.createElement('canvas');
+                    canvas.id = 'consumoChart';
+                    parent.innerHTML = '';
+                    parent.appendChild(canvas);
+                    return;
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Consumo (kWh/dia)',
+                            data: data,
+                            backgroundColor: data.map(function(_, i) { return colors[i % colors
+                                .length]; }),
+                            borderColor: '#1e293b',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y.toFixed(3) + ' kWh/dia';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#e9edf2' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toFixed(1) + ' kWh';
+                                    }
+                                }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+
+                if (document.body.classList.contains('dark-mode')) {
+                    chartInstance.options.scales.y.grid.color = '#2a3a5e';
+                    chartInstance.update();
+                }
+            }
+
+            // ===== FUNÇÃO: ATUALIZAR RESUMO =====
+            function updateSummary() {
+                var sections = document.querySelectorAll('.equipment-section');
+                var tariff = parseFloat(tariffSelect.value) || 0.92;
+                displayTariff.textContent = 'R$ ' + tariff.toFixed(2) + ' / kWh';
+
+                var totalConsumo = 0;
+                var totalCusto = 0;
+                var rows = '';
+
+                sections.forEach(function(section, idx) {
+                    var num = idx + 1;
+                    var nameEl = document.getElementById('equip_name_' + num);
+                    var powerEl = document.getElementById('equip_power_' + num);
+                    var qtyEl = document.getElementById('equip_quantity_' + num);
+                    var timeEl = document.getElementById('equip_time_' + num);
+
+                    var name = nameEl ? nameEl.value.trim() : '---';
+                    var power = parseFloat(powerEl?.value) || 0;
+                    var qty = parseFloat(qtyEl?.value) || 1;
+                    var time = parseFloat(timeEl?.value) || 0;
+                    var consumo = (power * time * qty) / 1000;
+                    var custo = consumo * tariff;
+
+                    totalConsumo += consumo;
+                    totalCusto += custo;
+
+                    if (name && name !== '---' && power > 0) {
+                        rows += '<tr><td><strong>' + name + '</strong></td><td class="text-right">' + power +
+                            '</td><td class="text-center">' + qty + '</td><td class="text-right">' + time
+                            .toFixed(1) + '</td><td class="text-right">' + consumo.toFixed(3) +
+                            '</td><td class="text-right">R$ ' + custo.toFixed(2) + '</td></tr>';
+                    }
+                });
+
+                summaryBody.innerHTML = rows || '<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum equipamento cadastrado. Adicione um equipamento para ver o resumo.</td></tr>';
+
+                summaryFooter.innerHTML = '<tr><td colspan="3" class="total-label">TOTAL GERAL</td><td class="text-right"></td><td class="text-right" style="font-size:16px;">' +
+                    totalConsumo.toFixed(3) + ' kWh</td><td class="text-right" style="font-size:16px; color:#0c5c64;">R$ ' +
+                    totalCusto.toFixed(2) + '</td></tr>';
+            }
+
+            // ===== FUNÇÃO: COLETAR DADOS =====
+            function coletarDados() {
+                var studentName = document.getElementById('studentName').value.trim();
+                var studentClass = document.getElementById('studentClass').value.trim();
+                var collectionDate = document.getElementById('collectionDate').value;
+                var collectionLocation = document.getElementById('collectionLocation').value.trim();
+                var tariff = parseFloat(tariffSelect.value) || 0.92;
+                var tariffLabel = tariffSelect.options[tariffSelect.selectedIndex]?.text || 'Residencial';
+
+                var sections = document.querySelectorAll('.equipment-section');
+                var equipamentos = [];
+
+                sections.forEach(function(section, idx) {
+                    var num = idx + 1;
+                    var name = document.getElementById('equip_name_' + num);
+                    var brand = document.getElementById('equip_brand_' + num);
+                    var power = document.getElementById('equip_power_' + num);
+                    var qty = document.getElementById('equip_quantity_' + num);
+                    var time = document.getElementById('equip_time_' + num);
+                    var type = document.getElementById('equip_type_' + num);
+                    var obs = document.getElementById('equip_obs_' + num);
+                    var photoInput = document.getElementById('equip_photo_' + num);
+
+                    var nameVal = name ? name.value.trim() : '';
+                    var powerVal = parseFloat(power?.value) || 0;
+                    var qtyVal = parseFloat(qty?.value) || 1;
+                    var timeVal = parseFloat(time?.value) || 0;
+                    var typeVal = type ? type.value : '';
+
+                    if (nameVal && powerVal > 0) {
+                        var consumo = (powerVal * timeVal * qtyVal) / 1000;
+                        var custo = consumo * tariff;
+
+                        equipamentos.push({
+                            nome: nameVal,
+                            marca: brand ? brand.value.trim() : '',
+                            potencia: powerVal,
+                            quantidade: qtyVal,
+                            tempo: timeVal,
+                            tipo: typeVal,
+                            consumo: consumo,
+                            custo: custo,
+                            observacoes: obs ? obs.value.trim() : '',
+                            foto: imageDataUrls['equip_photo_' + num] || null,
+                            fotoNome: photoInput?.files?.[0]?.name || null
+                        });
+                    }
+                });
+
+                return {
+                    aluno: studentName,
+                    turma: studentClass,
+                    data: collectionDate,
+                    local: collectionLocation || 'Não informado',
+                    tarifa: tariff,
+                    tarifaLabel: tariffLabel,
+                    equipamentos: equipamentos,
+                    total_equipamentos: equipamentos.length,
+                    totalConsumo: equipamentos.reduce(function(acc, e) { return acc + e.consumo; }, 0),
+                    totalCusto: equipamentos.reduce(function(acc, e) { return acc + e.custo; }, 0),
+                    data_envio: new Date().toLocaleString('pt-BR')
+                };
+            }
+
+            // ===== FUNÇÃO: SALVAR LOCAL =====
+            function salvarLocal() {
+                var dados = coletarDados();
+                if (dados.equipamentos.length === 0) {
+                    showMessage('⚠️ Adicione pelo menos um equipamento para salvar.', 'error');
+                    return;
+                }
+                localStorage.setItem('caça_equipamentos', JSON.stringify(dados));
+                showMessage('✅ Dados salvos com sucesso! Use "Carregar salvos" para recuperar.', 'success');
+            }
+
+            // ===== FUNÇÃO: CARREGAR LOCAL =====
+            function carregarLocal() {
+                var saved = localStorage.getItem('caça_equipamentos');
+                if (!saved) {
+                    showMessage('⚠️ Nenhum dado salvo encontrado.', 'error');
+                    return;
+                }
+
+                try {
+                    var dados = JSON.parse(saved);
+
+                    document.getElementById('studentName').value = dados.aluno || '';
+                    document.getElementById('studentClass').value = dados.turma || '';
+                    document.getElementById('collectionDate').value = dados.data || '';
+                    document.getElementById('collectionLocation').value = dados.local !== 'Não informado' ? dados.local :
+                        '';
+
+                    var tariffOptions = tariffSelect.options;
+                    for (var i = 0; i < tariffOptions.length; i++) {
+                        if (parseFloat(tariffOptions[i].value) === dados.tarifa) {
+                            tariffSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    var sections = document.querySelectorAll('.equipment-section');
+                    sections.forEach(function(section, idx) {
+                        if (idx > 0) section.remove();
+                    });
+
+                    if (dados.equipamentos && dados.equipamentos.length > 0) {
+                        var firstSection = document.querySelector('.equipment-section');
+                        if (firstSection) {
+                            var inputs = firstSection.querySelectorAll('input, select, textarea');
+                            inputs.forEach(function(input) {
+                                if (input.type === 'file') {
+                                    input.value = '';
+                                    var label = input.closest('.file-input-wrapper').querySelector(
+                                    '.file-label');
+                                    if (label) label.innerHTML =
+                                        '📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>';
+                                } else if (input.tagName === 'SELECT') {
+                                    input.selectedIndex = 0;
+                                } else {
+                                    input.value = '';
+                                }
+                            });
+                            var previews = firstSection.querySelectorAll('.image-preview-container');
+                            previews.forEach(function(p) { p.innerHTML = ''; });
+                            imageDataUrls = {};
+                        }
+
+                        dados.equipamentos.forEach(function(eq, idx) {
+                            var num = idx + 1;
+                            if (idx === 0) {
+                                var section = document.querySelector('.equipment-section');
+                                if (section) {
+                                    var nameEl = document.getElementById('equip_name_1');
+                                    var brandEl = document.getElementById('equip_brand_1');
+                                    var powerEl = document.getElementById('equip_power_1');
+                                    var qtyEl = document.getElementById('equip_quantity_1');
+                                    var timeEl = document.getElementById('equip_time_1');
+                                    var typeEl = document.getElementById('equip_type_1');
+                                    var obsEl = document.getElementById('equip_obs_1');
+
+                                    if (nameEl) nameEl.value = eq.nome || '';
+                                    if (brandEl) brandEl.value = eq.marca || '';
+                                    if (powerEl) powerEl.value = eq.potencia || '';
+                                    if (qtyEl) qtyEl.value = eq.quantidade || 1;
+                                    if (timeEl) timeEl.value = eq.tempo || '';
+                                    if (typeEl) typeEl.value = eq.tipo || '';
+                                    if (obsEl) obsEl.value = eq.observacoes || '';
+
+                                    if (eq.foto) {
+                                        imageDataUrls['equip_photo_1'] = eq.foto;
+                                        var container = document.getElementById('preview_equip_photo_1');
+                                        if (container) {
+                                            var img = document.createElement('img');
+                                            img.src = eq.foto;
+                                            img.alt = 'Preview da foto';
+                                            container.appendChild(img);
+                                            var fileLabel = document.querySelector('#equip_photo_1')
+                                                ?.closest('.file-input-wrapper')?.querySelector(
+                                                '.file-label');
+                                            if (fileLabel) {
+                                                fileLabel.innerHTML = '📷 Foto selecionada: ';
+                                                var nameSpan = document.createElement('span');
+                                                nameSpan.className = 'file-name';
+                                                nameSpan.textContent = ' 📎 ' + (eq.fotoNome ||
+                                                '(imagem salva)');
+                                                fileLabel.appendChild(nameSpan);
+                                            }
+                                        }
+                                    }
+
+                                    setTimeout(function() { calculateEquipment(1); }, 100);
+                                }
+                            } else {
+                                addEquipmentWithData(eq);
+                            }
+                        });
+                    }
+
+                    showMessage('✅ Dados carregados com sucesso! (' + dados.equipamentos.length + ' equipamentos)',
+                        'success');
+                    updateSummary();
+                    updateChart();
+
+                } catch (e) {
+                    showMessage('⚠️ Erro ao carregar os dados salvos.', 'error');
+                }
             }
 
             // ===== FUNÇÃO: RESETAR =====
@@ -1096,165 +1903,177 @@
                 document.getElementById('collectionDate').value = '';
                 document.getElementById('collectionLocation').value = '';
                 tariffSelect.selectedIndex = 0;
+                imageDataUrls = {};
 
-                const sections = document.querySelectorAll('.equipment-section');
-                sections.forEach((section, idx) => {
+                var sections = document.querySelectorAll('.equipment-section');
+                sections.forEach(function(section, idx) {
                     if (idx > 0) {
                         section.remove();
                     } else {
-                        const inputs = section.querySelectorAll('input, select, textarea');
-                        inputs.forEach(input => {
+                        var inputs = section.querySelectorAll('input, select, textarea');
+                        inputs.forEach(function(input) {
                             if (input.type === 'file') {
                                 input.value = '';
-                                const label = input.closest('.file-input-wrapper').querySelector('.file-label');
-                                if (label) label.innerHTML = '📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>';
+                                var label = input.closest('.file-input-wrapper').querySelector('.file-label');
+                                if (label) label.innerHTML =
+                                    '📷 Clique para selecionar uma foto<br><span style="font-size:12px;color:#94a3b8;">Formatos: JPG, PNG, WEBP</span>';
                             } else if (input.tagName === 'SELECT') {
                                 input.selectedIndex = 0;
                             } else {
                                 input.value = '';
                             }
                         });
+                        var previews = section.querySelectorAll('.image-preview-container');
+                        previews.forEach(function(p) { p.innerHTML = ''; });
                     }
                 });
 
                 updateIndexes();
                 updateRemoveButtons();
                 updateSummary();
+                updateChart();
                 messageBox.className = 'alert';
                 messageBox.style.display = 'none';
                 messageBox.textContent = '';
+                showMessage('🗑️ Todos os dados foram limpos.', 'info');
+            }
+
+            // ===== FUNÇÃO: EXPORTAR CSV =====
+            function exportarCSV() {
+                var dados = coletarDados();
+                if (dados.equipamentos.length === 0) {
+                    showMessage('⚠️ Adicione pelo menos um equipamento para exportar.', 'error');
+                    return;
+                }
+
+                var csv = '\uFEFF';
+                csv += 'Aparelho;Potência (W);Quantidade;Tempo (h/dia);Consumo (kWh);Custo (R$);Tipo;Marca;Observações\n';
+
+                dados.equipamentos.forEach(function(eq) {
+                    csv += eq.nome + ';' + eq.potencia + ';' + eq.quantidade + ';' + eq.tempo + ';' + eq.consumo
+                        .toFixed(3) + ';' + eq.custo.toFixed(2) + ';' + eq.tipo + ';' + eq.marca + ';' + eq
+                        .observacoes + '\n';
+                });
+
+                csv += '\n';
+                csv += 'TOTAL; ; ; ;' + dados.totalConsumo.toFixed(3) + ';' + dados.totalCusto.toFixed(2) + '; ; ;\n';
+                csv += 'Aluno: ' + dados.aluno + ';Turma: ' + dados.turma + ';Data: ' + dados.data + ';Local: ' + dados
+                    .local + ';Tarifa: ' + dados.tarifaLabel + '\n';
+
+                var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'consumo_' + dados.aluno.replace(/\s/g, '_') + '_' + dados.data + '.csv';
+                link.click();
+
+                showMessage('✅ CSV exportado com ' + dados.equipamentos.length + ' equipamentos!', 'success');
+            }
+
+            // ===== FUNÇÃO: GERAR PDF =====
+            function gerarPDF() {
+                var dados = coletarDados();
+                if (dados.equipamentos.length === 0) {
+                    showMessage('⚠️ Adicione pelo menos um equipamento para gerar o PDF.', 'error');
+                    return;
+                }
+
+                var pdfElement = document.createElement('div');
+                pdfElement.id = 'pdfSection';
+                var tableRows = '';
+                dados.equipamentos.forEach(function(eq) {
+                    tableRows += '<tr><td><strong>' + eq.nome + '</strong></td><td style="text-align:right;">' + eq
+                        .potencia + '</td><td style="text-align:center;">' + eq.quantidade +
+                        '</td><td style="text-align:right;">' + eq.tempo.toFixed(1) +
+                        '</td><td style="text-align:right;">' + eq.consumo.toFixed(3) +
+                        '</td><td style="text-align:right;">R$ ' + eq.custo.toFixed(2) + '</td></tr>';
+                });
+
+                pdfElement.innerHTML = '<h2>🔍 Relatório - Caça aos Equipamentos Elétricos</h2><div class="pdf-meta"><strong>Aluno:</strong> ' +
+                    dados.aluno + ' &nbsp;|&nbsp; <strong>Turma:</strong> ' + dados.turma + ' &nbsp;|&nbsp; <strong>Data:</strong> ' +
+                    dados.data + ' &nbsp;|&nbsp; <strong>Local:</strong> ' + dados.local +
+                    '<br><strong>Tarifa:</strong> ' + dados.tarifaLabel + ' — R$ ' + dados.tarifa.toFixed(2) +
+                    ' / kWh</div><table><thead><tr><th>Aparelho</th><th style="text-align:right;">Pot(W)</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Tempo(h/dia)</th><th style="text-align:right;">Consumo(kWh)</th><th style="text-align:right;">Custo(R$)</th></tr></thead><tbody>' +
+                    tableRows +
+                    '</tbody><tfoot><tr><td colspan="3"><strong>TOTAL GERAL</strong></td><td style="text-align:right;"></td><td style="text-align:right;font-size:14px;"><strong>' +
+                    dados.totalConsumo.toFixed(3) +
+                    ' kWh</strong></td><td style="text-align:right;font-size:14px;color:#0c5c64;"><strong>R$ ' + dados
+                    .totalCusto.toFixed(2) +
+                    '</strong></td></tr></tfoot></table><div style="margin-top:16px;font-size:11px;color:#94a3b8;border-top:1px solid #e9edf2;padding-top:12px;"><p>📌 Observações: Os dados foram coletados durante a atividade prática.</p><p>🔗 Relatório gerado automaticamente pelo sistema da Escola.</p></div>';
+
+                document.body.appendChild(pdfElement);
+
+                var opt = {
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: 'relatorio_' + dados.aluno.replace(/\s/g, '_') + '_' + dados.data + '.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf()
+                    .set(opt)
+                    .from(pdfElement)
+                    .save()
+                    .then(function() {
+                        document.body.removeChild(pdfElement);
+                        showMessage('✅ PDF gerado com sucesso! (' + dados.equipamentos.length + ' equipamentos)',
+                            'success');
+                    })
+                    .catch(function(err) {
+                        document.body.removeChild(pdfElement);
+                        showMessage('⚠️ Erro ao gerar o PDF. Tente novamente.', 'error');
+                        console.error(err);
+                    });
             }
 
             // ===== FUNÇÃO: ENVIAR POR E-MAIL =====
             function sendEmail() {
-                // Coleta dados do aluno
-                const studentName = document.getElementById('studentName').value.trim();
-                const studentClass = document.getElementById('studentClass').value.trim();
-                const collectionDate = document.getElementById('collectionDate').value;
-                const collectionLocation = document.getElementById('collectionLocation').value.trim();
-                const tariff = parseFloat(tariffSelect.value) || 0.92;
-                const tariffLabel = tariffSelect.options[tariffSelect.selectedIndex]?.text || 'Residencial';
+                var dados = coletarDados();
 
-                if (!studentName || !studentClass || !collectionDate) {
+                if (!dados.aluno || !dados.turma || !dados.data) {
                     showMessage('⚠️ Preencha Nome, Turma e Data antes de enviar.', 'error');
                     return;
                 }
 
-                // Coleta equipamentos
-                const sections = document.querySelectorAll('.equipment-section');
-                const equipamentos = [];
-                let hasError = false;
-
-                sections.forEach((section, idx) => {
-                    const num = idx + 1;
-                    const name = document.getElementById(`equip_name_${num}`);
-                    const power = document.getElementById(`equip_power_${num}`);
-                    const qty = document.getElementById(`equip_quantity_${num}`);
-                    const time = document.getElementById(`equip_time_${num}`);
-                    const type = document.getElementById(`equip_type_${num}`);
-                    const brand = document.getElementById(`equip_brand_${num}`);
-                    const obs = document.getElementById(`equip_obs_${num}`);
-
-                    const nameVal = name ? name.value.trim() : '';
-                    const powerVal = parseFloat(power?.value) || 0;
-                    const qtyVal = parseFloat(qty?.value) || 1;
-                    const timeVal = parseFloat(time?.value) || 0;
-                    const typeVal = type ? type.value : '';
-
-                    if (!nameVal) {
-                        showMessage(`⚠️ Equipamento ${num}: preencha o Nome.`, 'error');
-                        hasError = true;
-                        return;
-                    }
-                    if (powerVal <= 0) {
-                        showMessage(`⚠️ Equipamento ${num}: Potência deve ser maior que zero.`, 'error');
-                        hasError = true;
-                        return;
-                    }
-                    if (timeVal < 0) {
-                        showMessage(`⚠️ Equipamento ${num}: Tempo não pode ser negativo.`, 'error');
-                        hasError = true;
-                        return;
-                    }
-                    if (!typeVal) {
-                        showMessage(`⚠️ Equipamento ${num}: selecione o Tipo.`, 'error');
-                        hasError = true;
-                        return;
-                    }
-
-                    const consumo = (powerVal * timeVal * qtyVal) / 1000;
-                    const custo = consumo * tariff;
-
-                    equipamentos.push({
-                        nome: nameVal,
-                        marca: brand ? brand.value.trim() : '',
-                        potencia: powerVal,
-                        quantidade: qtyVal,
-                        tempo: timeVal,
-                        tipo: typeVal,
-                        consumo: consumo,
-                        custo: custo,
-                        observacoes: obs ? obs.value.trim() : ''
-                    });
-                });
-
-                if (hasError) return;
-                if (equipamentos.length === 0) {
+                if (dados.equipamentos.length === 0) {
                     showMessage('⚠️ Adicione pelo menos um equipamento.', 'error');
                     return;
                 }
 
-                // ===== CONSTRÓI O CORPO DO E-MAIL =====
-                let totalConsumo = 0;
-                let totalCusto = 0;
-                let tableRows = '';
-
-                equipamentos.forEach((eq, i) => {
-                    totalConsumo += eq.consumo;
-                    totalCusto += eq.custo;
-                    tableRows += `
-                        ${i+1}. ${eq.nome} | ${eq.potencia}W | ${eq.quantidade}x | ${eq.tempo}h/dia | ${eq.consumo.toFixed(3)} kWh | R$ ${eq.custo.toFixed(2)}
-                    `;
+                var tableRows = '';
+                dados.equipamentos.forEach(function(eq, i) {
+                    tableRows += (i + 1) + '. ' + eq.nome + ' | ' + eq.potencia + 'W | ' + eq.quantidade + 'x | ' + eq
+                        .tempo + 'h/dia | ' + eq.consumo.toFixed(3) + ' kWh | R$ ' + eq.custo.toFixed(2) + '\n';
                 });
 
-                const subject = encodeURIComponent(`🔍 Caça aos Equipamentos - ${studentName} (${studentClass})`);
-                const body = encodeURIComponent(`
-        ===================================================
-        🔍 RELATÓRIO - CAÇA AOS EQUIPAMENTOS ELÉTRICOS
-        ===================================================
+                var subject = encodeURIComponent('🔍 Caça aos Equipamentos - ' + dados.aluno + ' (' + dados.turma + ')');
+                var body = encodeURIComponent(
+                    '\n        ===================================================\n        🔍 RELATÓRIO - CAÇA AOS EQUIPAMENTOS ELÉTRICOS\n        ===================================================\n\n        📝 DADOS DO ALUNO\n        ─────────────────────────────────────────────\n        Nome: ' +
+                    dados.aluno +
+                    '\n        Turma: ' + dados.turma +
+                    '\n        Data da coleta: ' + dados.data +
+                    '\n        Local: ' + dados.local +
+                    '\n        Tarifa aplicada: ' + dados.tarifaLabel + ' — R$ ' + dados.tarifa.toFixed(2) +
+                    ' / kWh\n\n        📋 EQUIPAMENTOS CADASTRADOS (' + dados.equipamentos.length +
+                    ')\n        ─────────────────────────────────────────────\n        # | Aparelho | Pot(W) | Qtd | Tempo(h/dia) | Consumo(kWh) | Custo(R$)\n        ─────────────────────────────────────────────\n        ' +
+                    tableRows +
+                    '        ─────────────────────────────────────────────\n        TOTAL GERAL: ' + dados.totalConsumo
+                    .toFixed(3) + ' kWh | R$ ' + dados.totalCusto.toFixed(2) +
+                    '\n        ===================================================\n\n        📌 Observações: Os dados foram coletados durante a atividade prática.\n\n        🔗 Enviado pelo sistema da Escola.\n        '
+                    );
 
-        📝 DADOS DO ALUNO
-        ─────────────────────────────────────────────
-        Nome: ${studentName}
-        Turma: ${studentClass}
-        Data da coleta: ${collectionDate}
-        Local: ${collectionLocation || 'Não informado'}
-        Tarifa aplicada: ${tariffLabel} — R$ ${tariff.toFixed(2)} / kWh
-
-        📋 EQUIPAMENTOS CADASTRADOS (${equipamentos.length})
-        ─────────────────────────────────────────────
-        # | Aparelho | Pot(W) | Qtd | Tempo(h/dia) | Consumo(kWh) | Custo(R$)
-        ─────────────────────────────────────────────
-        ${tableRows}
-        ─────────────────────────────────────────────
-        TOTAL GERAL: ${totalConsumo.toFixed(3)} kWh | R$ ${totalCusto.toFixed(2)}
-        ===================================================
-
-        📌 Observações: Os dados foram coletados durante a atividade prática.
-
-        🔗 Enviado pelo sistema da Escola.
-        `);
-
-                window.location.href = `mailto:thyago.moncao@educacao.mg.gov.br?subject=${subject}&body=${body}`;
-
-                showMessage(`✅ E-mail aberto com ${equipamentos.length} equipamentos! Basta clicar em "Enviar".`, 'success');
+                window.location.href =
+                    'mailto:thyago.moncao@educacao.mg.gov.br?subject=' + subject + '&body=' + body;
+                showMessage('✅ E-mail aberto com ' + dados.equipamentos.length + ' equipamentos!', 'success');
             }
 
             // ===== FUNÇÃO: VALIDAR E ATUALIZAR =====
             function submitForm(event) {
                 event.preventDefault();
                 updateSummary();
-                showMessage('✅ Resumo atualizado com sucesso! Verifique a tabela abaixo.', 'success');
+                updateChart();
+                salvarLocal();
+                showMessage('✅ Resumo atualizado e dados salvos automaticamente!', 'success');
             }
 
             // ===== FUNÇÃO: EXIBIR MENSAGEM =====
@@ -1270,23 +2089,47 @@
 
             // ===== INICIALIZAÇÃO =====
             function init() {
-                const dateInput = document.getElementById('collectionDate');
+                var dateInput = document.getElementById('collectionDate');
                 if (dateInput) {
                     dateInput.value = new Date().toISOString().split('T')[0];
                 }
 
-                const firstSection = createEquipmentSection(1);
+                var firstSection = createEquipmentSection(1);
                 container.appendChild(firstSection);
                 updateRemoveButtons();
                 updateSummary();
+                updateChart();
+                exibirDicaAleatoria();
 
+                // Tentar carregar dados salvos
+                var saved = localStorage.getItem('caça_equipamentos');
+                if (saved) {
+                    try {
+                        var dados = JSON.parse(saved);
+                        if (dados.equipamentos && dados.equipamentos.length > 0) {
+                            setTimeout(function() {
+                                carregarLocal();
+                            }, 500);
+                        }
+                    } catch (e) { /* ignora */ }
+                }
+
+                // ===== EVENTO PRINCIPAL - ADICIONAR EQUIPAMENTO =====
                 addBtn.addEventListener('click', addEquipment);
+
+                // Outros eventos
                 resetBtn.addEventListener('click', resetForm);
+                loadSavedBtn.addEventListener('click', carregarLocal);
                 submitBtn.addEventListener('click', submitForm);
                 sendEmailBtn.addEventListener('click', sendEmail);
-                tariffSelect.addEventListener('change', updateSummary);
+                exportCsvBtn.addEventListener('click', exportarCSV);
+                exportPdfBtn.addEventListener('click', gerarPDF);
+                tariffSelect.addEventListener('change', function() {
+                    updateSummary();
+                    updateChart();
+                });
 
-                console.log('🔍 Caça aos Equipamentos — Site carregado!');
+                console.log('🔍 Caça aos Equipamentos — Site carregado com todas as melhorias!');
             }
 
             if (document.readyState === 'loading') {
